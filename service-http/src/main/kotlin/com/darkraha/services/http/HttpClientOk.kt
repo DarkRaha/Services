@@ -18,7 +18,7 @@ import java.net.URI
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 
-open class HttpServiceOk protected constructor() : Service<Request>(), HttpService<Request> {
+open class HttpServiceOk protected constructor() : Service<Request>(), HttpService {
 
     protected var httpClient: OkHttpClient? = null
     protected var jsonConverter: JsonConverterA? = null
