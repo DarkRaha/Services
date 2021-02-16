@@ -23,7 +23,7 @@ class DeferredTest {
             set.add("onError")
         }.onSuccess {
             set.add("onSuccess")
-        }.onProgress { pdi, jResponse ->
+        }.onProgress {
             set.add("onProgress")
         }.onFinish {
             set.add("onFinish")
@@ -84,7 +84,7 @@ class DeferredTest {
             set.add("onError")
         }.onSuccess {
             set.add("onSuccess")
-        }.onProgress { pdi, jResponse ->
+        }.onProgress {
             set.add("onProgress")
         }.onFinish {
             set.add("onFinish")

@@ -44,7 +44,7 @@ interface DeferredUserBuilder<RESULT> : DeferredUserCallbacks<RESULT> {
     override fun onProgress(
         objWeak: Any?,
         onMainThread: Boolean,
-        cb: BiConsumer<ProgressData, JobResponse<RESULT>>
+        cb: Consumer<JobResponse<RESULT>>
     ): DeferredUserBuilder<RESULT>
 
     fun plugin(p: Plugin<RESULT>): DeferredUserCallbacks<RESULT>

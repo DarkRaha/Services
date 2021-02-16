@@ -1,6 +1,5 @@
 package com.darkraha.services.http
 
-import com.darkraha.services.core.deferred.Deferred
 import com.darkraha.services.core.deferred.DeferredFactory
 import com.darkraha.services.core.deferred.DeferredServiceBuilder
 import com.darkraha.services.core.deferred.DeferredUserCallbacks
@@ -11,14 +10,18 @@ import com.darkraha.services.core.utils.json.JsonConverterA
 import com.darkraha.services.core.worker.Worker
 import com.darkraha.services.core.worker.WorkerActions
 import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaType
 import java.io.File
 import java.io.IOException
 import java.net.URI
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.TimeUnit
 
-open class HttpServiceOk protected constructor() : Service<Request>(), HttpService {
+/**
+ * Wrapper for OkHttpClient.
+ *
+ * @author Rahul Verma
+ */
+open class HttpClientOk protected constructor() : Service<Request>(), HttpClient {
 
     protected var httpClient: OkHttpClient? = null
     protected var jsonConverter: JsonConverterA? = null
@@ -150,13 +153,13 @@ open class HttpServiceOk protected constructor() : Service<Request>(), HttpServi
     }
 
     class Builder {
-        private val httpSrv = HttpServiceOk()
+        private val httpSrv = HttpClientOk()
         fun httpClient(c: OkHttpClient): Builder = this.apply { httpSrv.httpClient = c }
         fun mainWorker(w: Worker<Request>): Builder = this.apply { httpSrv.mainWorker = w }
         fun executor(e: ExecutorService): Builder = this.apply { httpSrv.executorService = e }
         fun deferredFactory(df: DeferredFactory<Request>): Builder = this.apply { httpSrv.deferredFactory = df }
         fun jsonConverter(jc: JsonConverterA): Builder = this.apply { httpSrv.jsonConverter = jc }
-        fun build(): HttpServiceOk {
+        fun build(): HttpClientOk {
             httpSrv.setupDefault()
             return httpSrv
         }

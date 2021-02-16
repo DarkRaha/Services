@@ -41,7 +41,8 @@ class SitemapGen : Plugin<CrawlingResult> {
         builderTask
             .onBeforeStart(null, false, onStart)
             .onFinish(null, false, onFinish)
-            .onProgress { pd, b ->
+            .onProgress {
+                val pd = it.getProgressData()!!
                 lock.withLock {
                     addUrl(pd.currentData as HandlingUri)
                 }

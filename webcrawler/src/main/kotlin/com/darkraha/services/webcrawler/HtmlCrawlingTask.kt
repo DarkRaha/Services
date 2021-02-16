@@ -4,9 +4,8 @@ import com.darkraha.services.core.job.JobResponse
 import com.darkraha.services.core.job.MutableProgressData
 import com.darkraha.services.core.worker.Task
 import com.darkraha.services.core.worker.WorkerActions
-import com.darkraha.services.http.HttpServiceOk
+import com.darkraha.services.http.HttpClient
 import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
 import org.jsoup.select.Elements
 import java.net.URI
 import java.net.URL
@@ -19,7 +18,7 @@ import kotlin.concurrent.withLock
 /**
  * @author Rahul Verma
  */
-open class HtmlCrawlingTask(protected var httpService: HttpServiceOk) : Task<CrawlerRequest> {
+open class HtmlCrawlingTask(protected var httpClient: HttpClient) : Task<CrawlerRequest> {
     override fun onTask(params: CrawlerRequest?, workerActions: WorkerActions, jobResponse: JobResponse<*>) {
 
         val state = CrawlerState().also {
@@ -73,7 +72,7 @@ open class HtmlCrawlingTask(protected var httpService: HttpServiceOk) : Task<Cra
 
                 if (isNotHandled) {
                     val localHandlingUri = handlingUri
-                    httpService.download(localHandlingUri.url!!).onSuccess {
+                    httpClient.download(localHandlingUri.url!!).onSuccess {
 
                         localHandlingUri.doc = Jsoup.parse(it.getResult(), localHandlingUri.url)
                         handlingUri(localHandlingUri, state)

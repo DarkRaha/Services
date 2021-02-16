@@ -50,7 +50,7 @@ interface DeferredServiceBuilder<RESULT> : DeferredUserBuilder<RESULT> {
     override fun onProgress(
         objWeak: Any?,
         onMainThread: Boolean,
-        cb: BiConsumer<ProgressData, JobResponse<RESULT>>
+        cb: Consumer<JobResponse<RESULT>>
     ): DeferredServiceBuilder<RESULT>
 
     override fun plugin(p: Plugin<RESULT>): DeferredServiceBuilder<RESULT>

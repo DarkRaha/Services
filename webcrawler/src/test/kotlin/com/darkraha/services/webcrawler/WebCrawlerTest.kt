@@ -20,8 +20,8 @@ internal class WebCrawlerTest {
                  //   .changeFreq(SitemapGen.ChangeFreq.weekly)
                     .build()
             )
-            .onProgress { pd, result ->
-                println(pd.action)
+            .onProgress {
+                println(it.getProgressData()!!.action)
             }.sync().onFinish {
                 val sitemapGen = it.getPlugins()!![SitemapGen.NAME] as SitemapGen
                 println("total pages ${sitemapGen.countPages}")

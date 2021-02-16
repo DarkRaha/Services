@@ -5,8 +5,6 @@ open class ResponseSrv<T> {
     var result: String? = null
     var code: Int = 0
     var message: String? = null
-
-    var items: T? = null
     var data: T? = null
 
     val isSuccess: Boolean

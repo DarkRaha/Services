@@ -3,7 +3,7 @@ package com.darkraha.services.http
 import com.darkraha.services.core.deferred.DeferredUserCallbacks
 import java.io.File
 
-interface HttpService {
+interface HttpClient {
     fun download(url: String, params: List<Pair<String, Any>>? = null): DeferredUserCallbacks<String>
     fun downloadFile(url: String, file: File? = null): DeferredUserCallbacks<File>
     fun downloadByteArray(url: String): DeferredUserCallbacks<ByteArray>

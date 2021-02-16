@@ -5,11 +5,6 @@
 
 package com.darkraha.services.core.job
 
-import com.darkraha.services.core.utils.MainThread
-import com.darkraha.services.core.utils.OnMainThread
-import java.lang.ref.WeakReference
-import java.util.function.BiConsumer
-
 /**
  * Notify listeners about current progress of job.
  *
@@ -18,34 +13,6 @@ import java.util.function.BiConsumer
 interface JobNotifyProgress {
     fun notifyProgress(dataProgress: ProgressData)
 }
-
-open class WeakBiConsumer<T, U>(owner: Any, consumer: BiConsumer<T, U>) : BiConsumer<T, U> {
-
-    val ref = WeakReference(owner)
-    val refConsumer = WeakReference(consumer)
-
-    override fun accept(t: T, u: U) {
-        ref.get()?.apply { refConsumer.get()?.accept(t, u) }
-    }
-}
-
-
-class BiConsumerOnMainThread<T, U>(val consumer: BiConsumer<T, U>) : BiConsumer<T, U>, OnMainThread {
-    override fun accept(t: T, u: U) {
-        MainThread.execute { consumer.accept(t, u) }
-    }
-}
-
-class WeakBiConsumerOnMainThread<T, U>(objWeak: Any, consumer: BiConsumer<T, U>) :
-    WeakBiConsumer<T, U>(objWeak, consumer), OnMainThread {
-
-    override fun accept(t: T, u: U) {
-        if (ref.get() != null && refConsumer.get() != null) {
-            MainThread.execute { super.accept(t, u) }
-        }
-    }
-}
-
 
 interface ProgressData {
     val current: Long

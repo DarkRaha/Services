@@ -3,17 +3,18 @@ package com.darkraha.services.webcrawler
 import com.darkraha.services.core.deferred.DeferredFactory
 import com.darkraha.services.core.service.Service
 import com.darkraha.services.core.worker.Worker
-import com.darkraha.services.http.HttpServiceOk
+import com.darkraha.services.http.HttpClient
+import com.darkraha.services.http.HttpClientOk
 import java.util.concurrent.ExecutorService
 
 open class WebCrawler protected constructor() : Service<CrawlerRequest>() {
 
 
-    protected var httpService: HttpServiceOk? = null
+    protected var httpClient: HttpClient? = null
 
     override fun setupDefault() {
-        httpService = httpService ?: HttpServiceOk.newInstance()
-        mainWorker = mainWorker ?: Worker<CrawlerRequest>().onMainTask(HtmlCrawlingTask(httpService!!))
+        httpClient = httpClient ?: HttpClientOk.newInstance()
+        mainWorker = mainWorker ?: Worker<CrawlerRequest>().onMainTask(HtmlCrawlingTask(httpClient!!))
         super.setupDefault()
     }
 
@@ -23,6 +24,7 @@ open class WebCrawler protected constructor() : Service<CrawlerRequest>() {
 
     class Builder {
         private val srv = WebCrawler()
+        fun httpService(http: HttpClient) : Builder = this.apply { srv.httpClient = http }
         fun mainWorker(w: Worker<CrawlerRequest>): Builder = this.apply { srv.mainWorker = w }
         fun executor(e: ExecutorService): Builder = this.apply { srv.executorService = e }
         fun deferredFactory(df: DeferredFactory<CrawlerRequest>): Builder = this.apply { srv.deferredFactory = df }

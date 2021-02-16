@@ -44,9 +44,10 @@ interface DeferredUserCallbacks<RESULT> : JobResponse<RESULT> {
     fun onProgress(
         objWeak: Any? = null,
         onMainThread: Boolean = false,
-        cb: BiConsumer<ProgressData, JobResponse<RESULT>>
+        cb: Consumer<JobResponse<RESULT>>
     ): DeferredUserCallbacks<RESULT>
 
+    fun removeCallbacks(objWeak: Any)
 }
 
 

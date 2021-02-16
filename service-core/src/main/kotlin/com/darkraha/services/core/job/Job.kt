@@ -13,6 +13,7 @@ open class Job<PARAM, RESULT> {
     var params: PARAM? = null
 
     var plugins: MutableMap<String, Plugin<RESULT>>? = null
+    var progressData: ProgressData? = null
 
     var id: Long = 0
     var cmd: String? = null

@@ -1,22 +1,18 @@
 package com.darkraha.services.http
 
-import okhttp3.mockwebserver.Dispatcher
-import okhttp3.mockwebserver.MockResponse
-import okhttp3.mockwebserver.MockWebServer
-import okhttp3.mockwebserver.RecordedRequest
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.io.File
 
 
-internal class HttpServiceOkTest {
+internal class HttpClientOkTest {
 
 
     @Test
     fun downloadFile() {
         var file: File? = null
 
-        HttpServiceOk.newInstance().downloadFile("https://publicobject.com/helloworld.txt")
+        HttpClientOk.newInstance().downloadFile("https://publicobject.com/helloworld.txt")
             .onSuccess {
                 file = it.getResult()
             }.await()
@@ -33,10 +29,11 @@ internal class HttpServiceOkTest {
     fun downloadFileProgress() {
 
         var got = false
-        HttpServiceOk.newInstance().downloadFile("https://publicobject.com/helloworld.txt")
-            .onProgress { it, jr ->
+        HttpClientOk.newInstance().downloadFile("https://publicobject.com/helloworld.txt")
+            .onProgress { it
                 got = true
-                println("read ${it.current} total ${it.total}")
+                val progressData = it.getProgressData()
+                println("read ${progressData?.current} total ${progressData?.total}")
             }.onSuccess {
                 it.getResult()!!.delete()
             }.await()
@@ -48,7 +45,7 @@ internal class HttpServiceOkTest {
     @Test
     fun donwloadString() {
         var got = false
-        HttpServiceOk.newInstance().download("https://publicobject.com/helloworld.txt")
+        HttpClientOk.newInstance().download("https://publicobject.com/helloworld.txt")
             .onSuccess {
                 got = true
                 println("donwloadString: ${it.getResult()}")
@@ -63,7 +60,7 @@ internal class HttpServiceOkTest {
     @Test
     fun donwloadStringSync() {
         var got = false
-        HttpServiceOk.newInstance().httpRequest("https://publicobject.com/helloworld.txt").build(String::class.java)
+        HttpClientOk.newInstance().httpRequest("https://publicobject.com/helloworld.txt").build(String::class.java)
             .onSuccess {
                 got = true
                 println("donwloadString: ${it.getResult()}")
@@ -73,13 +70,14 @@ internal class HttpServiceOkTest {
 
     @Test
     fun tmpTest() {
-        val srv = HttpServiceOk.newInstance()
+        val srv = HttpClientOk.newInstance()
 
         var str: String? = null
 
 
         var result: String? = null
-        srv.get().onProgress { pd, jobResponse ->
+        srv.get().onProgress {
+            val pd = it.getProgressData()!!
             println("onProgress: ${pd.current} action: ${pd.action}")
         }.onSuccess {
             println("task success 1")

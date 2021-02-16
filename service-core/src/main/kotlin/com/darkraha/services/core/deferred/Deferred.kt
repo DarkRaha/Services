@@ -23,7 +23,6 @@ import kotlin.concurrent.withLock
 open class Deferred<PARAMS, RESULT> :
     DeferredServiceBuilder<RESULT>, WorkerActions {
 
-
     val job: Job<PARAMS, RESULT> = Job()
     val lock = ReentrantLock()
     protected val condFinished = lock.newCondition()
@@ -33,40 +32,22 @@ open class Deferred<PARAMS, RESULT> :
     var globalSyncObject: Any? = null
 
     protected var userCallbacks: LinkedList<UserCallback<JobResponse<RESULT>>>? = null
-    protected var cbProgress: MutableList<BiConsumer<ProgressData, JobResponse<RESULT>>>? = null
 
     fun toJobResponse() = this as JobResponse<RESULT>
     fun toDeferredCallbacks() = this as DeferredUserCallbacks<RESULT>
 
 
     protected open fun doDispatchCallbacks(jobState: JobState) {
-        userCallbacks?.apply {
-            forEach {
-                try {
-                    it.dispatchCallback(this@Deferred, jobState)
-                } catch (e: Exception) {
-                    e.printStackTrace()
+        lock.withLock {
+            userCallbacks?.apply {
+                forEach {
+                    try {
+                        it.dispatchCallback(this@Deferred, jobState)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
                 }
             }
-        }
-    }
-
-    protected open fun dispatchProgressCallbacks(pdi: ProgressData) {
-        cbProgress?.apply {
-            forEach {
-                dispatchProgressCallback(pdi, it)
-            }
-        }
-    }
-
-    protected open fun dispatchProgressCallback(
-        pdi: ProgressData,
-        cb: BiConsumer<ProgressData, JobResponse<RESULT>>
-    ) {
-        try {
-            cb.accept(pdi, this)
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -158,8 +139,11 @@ open class Deferred<PARAMS, RESULT> :
         lock.unlock()
     }
 
-    override fun notifyProgress(dataProgress: ProgressData) = synchronized(this) {
-        dispatchProgressCallbacks(dataProgress)
+    override fun notifyProgress(dataProgress: ProgressData)  {
+        lock.withLock {
+            job.progressData=dataProgress
+            doDispatchCallbacks(JobState.PROGRESS)
+        }
     }
 
     override fun pending() = run {
@@ -174,15 +158,14 @@ open class Deferred<PARAMS, RESULT> :
     }.apply { lock.unlock() }
 
     override fun dispatchCallbacks() {
-        lock.lock()
-        val state = job.state.get()
+        lock.withLock {
+            val state = job.state.get()
+            doDispatchCallbacks(state)
 
-        doDispatchCallbacks(state)
-
-        if (state.isFinished()) {
-            doDispatchCallbacks(JobState.FINISHED)
+            if (state.isFinished()) {
+                doDispatchCallbacks(JobState.FINISHED)
+            }
         }
-        lock.unlock()
     }
 
     override fun notifyFinished() {
@@ -204,6 +187,7 @@ open class Deferred<PARAMS, RESULT> :
     override fun getId(): Long = job.id
     override fun getIdObject(): Any? = job.idObject
     override fun getPlugins(): Map<String, Plugin<RESULT>>? = job.plugins
+    override fun getProgressData(): ProgressData? = job.progressData
 
     override fun await(): JobResponse<RESULT> = apply {
         lock.withLock {
@@ -222,8 +206,7 @@ open class Deferred<PARAMS, RESULT> :
         onMainThread: Boolean = false,
         cb: Consumer<JobResponse<RESULT>>
     ) = apply {
-        val cbInner = if (onMainThread) UserCallbackMainThread(jobState, objWeak, cb)
-        else UserCallback(jobState, objWeak, cb)
+        val cbInner = UserCallback(jobState, objWeak, onMainThread, cb)
         lock.lock()
         val currentState = job.state.get()
         if (currentState.isIgnoreAdd(jobState)) {
@@ -242,19 +225,12 @@ open class Deferred<PARAMS, RESULT> :
     protected open fun addProgressHandler(
         objWeak: Any?,
         onMainThread: Boolean = false,
-        cb: BiConsumer<ProgressData, JobResponse<RESULT>>
+        cb: Consumer<JobResponse<RESULT>>
     ) = apply {
-        if (!getState().isFinished()) {
-            val cbInner = when {
-                objWeak != null && onMainThread -> WeakBiConsumerOnMainThread(objWeak, cb)
-                objWeak != null -> WeakBiConsumer(objWeak, cb)
-                onMainThread -> BiConsumerOnMainThread(cb)
-                else -> cb
-            }
-
-            lock.lock()
-            cbProgress = (cbProgress ?: ArrayList()).apply { add(cbInner) }
-            lock.unlock()
+        val cbInner = UserCallback(JobState.PROGRESS, objWeak, onMainThread, cb)
+        lock.withLock {
+            userCallbacks = userCallbacks ?: LinkedList()
+            userCallbacks!!.add(cbInner)
         }
     }
 
@@ -304,10 +280,23 @@ open class Deferred<PARAMS, RESULT> :
     override fun onProgress(
         objWeak: Any?,
         onMainThread: Boolean,
-        cb: BiConsumer<ProgressData, JobResponse<RESULT>>
+        cb: Consumer<JobResponse<RESULT>>
     ): DeferredServiceBuilder<RESULT> =
         addProgressHandler(objWeak, onMainThread, cb)
 
+    override fun removeCallbacks(objWeak: Any) {
+        lock.withLock {
+            userCallbacks?.apply {
+                val iterator = iterator()
+                while (iterator.hasNext()) {
+                    val cb = iterator.next()
+                    if (cb.owner?.get() == objWeak) {
+                        iterator.remove()
+                    }
+                }
+            }
+        }
+    }
 
     override fun plugin(p: Plugin<RESULT>): DeferredServiceBuilder<RESULT> = this.apply {
         if (job.plugins == null) {
