@@ -12,7 +12,7 @@ internal class WebCrawlerTest {
     fun crawling() {
 
         val crawler = WebCrawler.newInstance()
-        crawler.newCrawlingTask("https://socode4.com")
+        crawler.newCrawlingTask("https://socode4.com/app/en")
            // .maxLinks(40)
             .build()
             .plugin(

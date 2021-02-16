@@ -1,14 +1,19 @@
 plugins {
     java
+    maven
     kotlin("jvm") version "1.4.10"
 }
 
-group = "com.darkraha"
+group = "com.darkraha.services"
 version = "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
 }
+
+
+
+// val kotl
 
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
