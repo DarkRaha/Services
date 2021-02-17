@@ -1,6 +1,7 @@
 plugins {
     java
-    kotlin("jvm") version "1.4.10"
+    maven
+    kotlin("jvm")
 }
 
 group = "services"
@@ -10,14 +11,12 @@ repositories {
     mavenCentral()
 }
 
-
-
-// val kotl
-
 dependencies {
+    implementation(project(":service-core"))
+    implementation(project(":service-http"))
+    implementation(project(":webcrawler"))
     implementation(kotlin("stdlib-jdk8"))
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.4.2")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.7.0")
+    testCompile("junit", "junit", "4.12")
 }
 
 configure<JavaPluginConvention> {
@@ -30,8 +29,4 @@ tasks {
     compileTestKotlin {
         kotlinOptions.jvmTarget = "1.8"
     }
-}
-
-tasks.withType<Test> {
-    useJUnitPlatform()
 }
