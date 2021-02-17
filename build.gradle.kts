@@ -1,9 +1,10 @@
 plugins {
     java
+    maven
     kotlin("jvm") version "1.4.10"
 }
 
-group = "services"
+group = "com.github.darkraha"
 version = "1.0-SNAPSHOT"
 
 repositories {

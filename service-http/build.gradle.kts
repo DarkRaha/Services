@@ -4,7 +4,7 @@ plugins {
     kotlin("jvm")
 }
 
-
+group = "com.github.darkraha.services"
 version = "1.0-SNAPSHOT"
 
 repositories {
