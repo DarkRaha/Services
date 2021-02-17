@@ -7,7 +7,7 @@ allprojects {
     apply(plugin = "java-library")
     apply(plugin = "maven")
     apply(plugin = "kotlin")
-    version = "1.0-SNAPSHOT"
+    version = "1.0"
 
     repositories {
         mavenCentral()
@@ -37,7 +37,7 @@ allprojects {
     }
 }
 
-subprojects{
+subprojects {
     group = "com.github.darkraha.services"
 }
 
@@ -50,19 +50,25 @@ dependencies {
     api(project(":service-http"))
     api(project(":webcrawler"))
 }
-tasks{
-    jar{
-        from(sourceSets.main.get().output)
+tasks {
 
-        dependsOn(configurations.runtimeClasspath)
-        from({
-            configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
-        })
+    jar {
+        subprojects.forEach {
+            dependsOn(":${it.name}:jar")
+        }
+        subprojects.forEach { subproject ->
+            from({
+                subproject.configurations.archives.allArtifacts.files.map {
+                    zipTree(it)
+                }
+            })
+        }
     }
 }
 
-tasks.register<Jar>("uberJar") {
-    archiveClassifier.set("uber")
+
+tasks.register<Jar>("fatJar") {
+    archiveClassifier.set("fat")
 
     from(sourceSets.main.get().output)
 

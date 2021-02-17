@@ -1,6 +1,5 @@
-
 dependencies {
-    implementation(project(":service-core"))
-    implementation(project(":service-http"))
-    implementation ("org.jsoup:jsoup:1.13.1")
+    api(project(":service-core"))
+    api(project(":service-http"))
+    api("org.jsoup:jsoup:1.13.1")
 }
