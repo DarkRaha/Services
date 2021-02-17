@@ -4,7 +4,6 @@ plugins {
     kotlin("jvm")
 }
 
-group = "services"
 version = "1.0-SNAPSHOT"
 
 repositories {
