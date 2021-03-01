@@ -1,6 +1,10 @@
 package com.darkraha.services.http
 
-open class ResponseSrv<T> {
+open class ResponseSrv<T>() {
+    constructor(d: T?) : this() {
+        data = d
+    }
+
     var time: Long = 0
     var result: String? = null
     var code: Int = 0

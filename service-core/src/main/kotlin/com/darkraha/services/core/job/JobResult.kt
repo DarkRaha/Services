@@ -8,7 +8,7 @@ import java.io.InputStream
  *
  * @author Rahul Verma
  */
-class JobResult<RESULT> {
+class JobResult<RESULT>(val clsTarget: Class<RESULT>) {
     /**
      * Main result of job
      */
@@ -17,12 +17,21 @@ class JobResult<RESULT> {
     var file: File? = null
     var url: String? = null
     var istream: InputStream? = null
-    var clsTarget: Class<RESULT>? = null
+    var isExpectedValue = false
     var mimetype: String? = null
     var rawResult: Any? = null
 
-    fun applyResult() {
-        result = tmpResult as RESULT?
-    }
+    var progressData: ProgressData? = null
 
+    /**
+     * Reason of error or cancellation
+     */
+    var reason: String? = null
+    var error: Exception? = null
+
+    fun expectResult() {
+        if (result == null && tmpResult!=null) {
+            result = tmpResult as RESULT?
+        }
+    }
 }

@@ -6,67 +6,71 @@
 
 package com.darkraha.services.core.deferred
 
-import com.darkraha.services.core.job.JobResponse
-import com.darkraha.services.core.job.Plugin
-import com.darkraha.services.core.job.ProgressData
+import com.darkraha.services.core.job.*
 import java.io.File
 import java.util.function.BiConsumer
 import java.util.function.Consumer
+
 /**
  * Deferred builder for services, allows to add callbacks and execute job.
  * @author Rahul Verma
  */
-interface DeferredServiceBuilder<RESULT> : DeferredUserBuilder<RESULT> {
+interface DeferredServiceBuilder<PARAMS, RESULT> : DeferredUserBuilder<RESULT>, JobInfoBuilder {
     override fun onBeforeStart(
         objWeak: Any?,
         onMainThread: Boolean,
         cb: Consumer<JobResponse<RESULT>>
-    ): DeferredServiceBuilder<RESULT>
+    ): DeferredServiceBuilder<PARAMS, RESULT>
 
     override fun onSuccess(
         objWeak: Any?,
         onMainThread: Boolean,
         cb: Consumer<JobResponse<RESULT>>
-    ): DeferredServiceBuilder<RESULT>
+    ): DeferredServiceBuilder<PARAMS, RESULT>
 
     override fun onCancel(
         objWeak: Any?,
         onMainThread: Boolean,
         cb: Consumer<JobResponse<RESULT>>
-    ): DeferredServiceBuilder<RESULT>
+    ): DeferredServiceBuilder<PARAMS, RESULT>
 
     override fun onError(
         objWeak: Any?,
         onMainThread: Boolean,
         cb: Consumer<JobResponse<RESULT>>
-    ): DeferredServiceBuilder<RESULT>
+    ): DeferredServiceBuilder<PARAMS, RESULT>
 
     override fun onFinish(
         objWeak: Any?,
         onMainThread: Boolean,
         cb: Consumer<JobResponse<RESULT>>
-    ): DeferredServiceBuilder<RESULT>
+    ): DeferredServiceBuilder<PARAMS, RESULT>
 
     override fun onProgress(
         objWeak: Any?,
         onMainThread: Boolean,
         cb: Consumer<JobResponse<RESULT>>
-    ): DeferredServiceBuilder<RESULT>
+    ): DeferredServiceBuilder<PARAMS, RESULT>
 
-    override fun plugin(p: Plugin<RESULT>): DeferredServiceBuilder<RESULT>
+    override fun subscribe(cb: JobCallbacks<RESULT>): DeferredServiceBuilder<PARAMS, RESULT>
 
-    fun setId(id: Long): DeferredServiceBuilder<RESULT>
-    fun setCmd(cmd: String?): DeferredServiceBuilder<RESULT>
-    fun setIdObject(idObj: Any?): DeferredServiceBuilder<RESULT>
+    override fun id(v: Long): DeferredServiceBuilder<PARAMS, RESULT>
+    override fun cmd(v: String?): DeferredServiceBuilder<PARAMS, RESULT>
+    override fun idObject(v: Any?): DeferredServiceBuilder<PARAMS, RESULT>
+
+    fun setMainTask(t: Task<PARAMS>?): DeferredServiceBuilder<PARAMS, RESULT>
+    fun setPreProcessors(p: List<Task<PARAMS>>?): DeferredServiceBuilder<PARAMS, RESULT>
+    fun setPostProcessors(p: List<Task<PARAMS>>?): DeferredServiceBuilder<PARAMS, RESULT>
 
     /**
      * Can be used on request stage to specify the  expected mimetype.
      */
-    fun setResultMimetype(mimetype: String?): DeferredServiceBuilder<RESULT>
+    fun setResultMimetype(mimetype: String?): DeferredServiceBuilder<PARAMS, RESULT>
+
     /**
      * Can be used on request stage to specify the  expected mimetype.
      */
-    fun setResultFile(file: File?): DeferredServiceBuilder<RESULT>
+    fun setResultFile(file: File?): DeferredServiceBuilder<PARAMS, RESULT>
 }
 
 

@@ -22,5 +22,14 @@ enum class JobState {
         }
     }
 
-    fun isFinished() =  this > PROGRESS //!(this == PREPARE || this == PENDING || this == PROGRESS)
+    fun isAllowExecute(forState: JobState): Boolean {
+        return when (forState) {
+            PROGRESS -> this == PENDING
+            FINISHED -> this.isFinished()
+            else -> forState == this
+        }
+
+    }
+
+    fun isFinished() = this > PROGRESS //!(this == PREPARE || this == PENDING || this == PROGRESS)
 }

@@ -1,8 +1,7 @@
 package com.darkraha.services.core.deferred
 
+import com.darkraha.services.core.job.JobCallbacks
 import com.darkraha.services.core.job.JobResponse
-import com.darkraha.services.core.job.ProgressData
-import java.util.function.BiConsumer
 import java.util.function.Consumer
 
 /**
@@ -10,44 +9,50 @@ import java.util.function.Consumer
  *
  * @author Rahul Verma
  */
-interface DeferredUserCallbacks<RESULT> : JobResponse<RESULT> {
+interface UserDeferred<RESULT> {
     fun onBeforeStart(
         objWeak: Any? = null,
         onMainThread: Boolean = false,
         cb: Consumer<JobResponse<RESULT>>
-    ): DeferredUserCallbacks<RESULT>
+    ): UserDeferred<RESULT>
 
     fun onSuccess(
         objWeak: Any? = null,
         onMainThread: Boolean = false,
         cb: Consumer<JobResponse<RESULT>>
-    ): DeferredUserCallbacks<RESULT>
+    ): UserDeferred<RESULT>
 
     fun onCancel(
         objWeak: Any? = null,
         onMainThread: Boolean = false,
         cb: Consumer<JobResponse<RESULT>>
-    ): DeferredUserCallbacks<RESULT>
+    ): UserDeferred<RESULT>
 
     fun onError(
         objWeak: Any? = null,
         onMainThread: Boolean = false,
         cb: Consumer<JobResponse<RESULT>>
-    ): DeferredUserCallbacks<RESULT>
+    ): UserDeferred<RESULT>
 
     fun onFinish(
         objWeak: Any? = null,
         onMainThread: Boolean = false,
         cb: Consumer<JobResponse<RESULT>>
-    ): DeferredUserCallbacks<RESULT>
+    ): UserDeferred<RESULT>
 
     fun onProgress(
         objWeak: Any? = null,
         onMainThread: Boolean = false,
         cb: Consumer<JobResponse<RESULT>>
-    ): DeferredUserCallbacks<RESULT>
+    ): UserDeferred<RESULT>
 
-    fun removeCallbacks(objWeak: Any)
+    fun subscribe(cb: JobCallbacks<RESULT>): UserDeferred<RESULT>
+
+    fun removeCallbacks(objWeak: Any?)
+
+    fun getResponse(): JobResponse<RESULT>
+
+    fun await(): JobResponse<RESULT>
 }
 
 

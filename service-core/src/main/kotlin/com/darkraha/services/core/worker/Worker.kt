@@ -5,127 +5,76 @@
  */
 package com.darkraha.services.core.worker
 
-import com.darkraha.services.core.job.JobResponse
-import com.darkraha.services.core.job.JobState
 import com.darkraha.services.core.deferred.Deferred
+import com.darkraha.services.core.job.Task
 import com.darkraha.services.core.utils.GlobalLock
-import java.util.concurrent.atomic.AtomicInteger
+import com.darkraha.services.core.worker.executors.TPoolWorkerExecutor
+import com.darkraha.services.core.worker.executors.WorkerExecutor
+import java.util.concurrent.ExecutorService
 
 
-/**
- * Step of job.
- */
+class Worker(var exe: WorkerExecutor<*>) : WorkerA() {
+    constructor(e: ExecutorService) : this(TPoolWorkerExecutor(e))
 
-fun interface Task<PARAMS> {
-    fun onTask(params: PARAMS?, workerActions: WorkerActions, jobResponse: JobResponse<*>)
-}
-
-/**
- * It is assumed that the worker will be fully prepared before use.
- */
-open class Worker<PARAMS> {
-    protected val jobsCount = AtomicInteger()
-    protected var taskPreProcessors: MutableList<Task<PARAMS>>? = null
-    protected var taskPostProcessors: MutableList<Task<PARAMS>>? = null
-    protected var mainTask: Task<PARAMS>? = null
-
-    open fun getJobWorkflow(deferred: Deferred<PARAMS, *>): (deferred: Deferred<PARAMS, *>) -> Unit {
-        jobsCount.incrementAndGet()
-        return this::workflow
+    override fun <PARAMS, RESULT> sync(deferred: Deferred<PARAMS, RESULT>) {
+        workflow(deferred)
     }
 
-    open fun workflow(deferred: Deferred<PARAMS, *>) {
-        if (startJob(deferred.job.params, deferred, deferred)) {
-            GlobalLock.lock(deferred.globalSyncObject)
-            doJob(deferred.job.params, deferred, deferred)
-            GlobalLock.unlock(deferred.globalSyncObject)
-            finishJob(deferred.job.params, deferred, deferred)
+    override fun <PARAMS, RESULT> async(deferred: Deferred<PARAMS, RESULT>) {
+        exe.execute {
+            workflow(deferred)
         }
     }
 
-    protected fun performTasks(
-        params: PARAMS?,
-        workerActions: WorkerActions,
-        jobResponse: JobResponse<*>,
+    private fun <PARAMS, RESULT> workflow(deferred: Deferred<PARAMS, RESULT>) {
+        deferred.apply {
+            if (workerHelper.pending()) {
+                workerHelper.dispatchCallbacks()
+                GlobalLock.lock(job.tasks.syncObject)
+                performTasks(this, job.tasks.preProcessors)
+                if (workerHelper.isPending()) {
+                    try {
+                        job.tasks.main?.onTask(job.params, workerHelper, job)
+                    } catch (e: Exception) {
+                        workerHelper.error(e)
+                        e.printStackTrace()
+                    }
+                }
+                performTasks(this, job.tasks.postProcessors)
+                GlobalLock.unlock(job.tasks.syncObject)
+            }
+            if (workerHelper.isPending()) {
+                workerHelper.success()
+            }
+
+            workerHelper.dispatchCallbacks()
+            workerHelper.notifyFinished()
+        }
+    }
+
+
+    override fun <PARAMS, RESULT> newHelper(deferred: Deferred<PARAMS, RESULT>): WorkerHelperA<PARAMS, RESULT> {
+        return WorkerHelper(deferred)
+    }
+
+
+    private fun <PARAMS, RESULT> performTasks(
+        deferred: Deferred<PARAMS, RESULT>,
         tasks: List<Task<PARAMS>>?
     ) {
-
-        tasks?.forEach {
-            if (jobResponse.getState() == JobState.PENDING) {
-                performTask(params, workerActions, jobResponse, it)
-            } else return
-        }
-    }
-
-    protected fun performTask(
-        params: PARAMS?,
-        workerActions: WorkerActions,
-        jobResponse: JobResponse<*>,
-        task: Task<PARAMS>
-    ) {
-
-        if (jobResponse.getState() == JobState.PENDING) {
-            try {
-                task.onTask(params, workerActions, jobResponse)
-            } catch (e: Exception) {
-                workerActions.error(e)
-                e.printStackTrace()
+        deferred.apply {
+            if (workerHelper.isPending()) {
+                tasks?.forEach {
+                    if (workerHelper.isPending()) {
+                        try {
+                            it.onTask(job.params, workerHelper, job)
+                        } catch (e: Exception) {
+                            workerHelper.error(e)
+                            e.printStackTrace()
+                        }
+                    } else return
+                }
             }
         }
     }
-
-    protected open fun startJob(
-        params: PARAMS?,
-        workerActions: WorkerActions,
-        jobResponse: JobResponse<*>
-    ): Boolean {
-        return workerActions.pending().apply {
-            workerActions.dispatchCallbacks()
-        }
-    }
-
-    protected open fun doJob(
-        params: PARAMS?,
-        workerActions: WorkerActions,
-        jobResponse: JobResponse<*>
-    ) {
-        performTasks(params, workerActions, jobResponse, taskPreProcessors)
-        mainTask?.apply { performTask(params, workerActions, jobResponse, this) }
-        performTasks(params, workerActions, jobResponse, taskPostProcessors)
-    }
-
-    protected open fun finishJob(
-        params: PARAMS?,
-        workerActions: WorkerActions,
-        jobResponse: JobResponse<*>
-    ) {
-        if (jobResponse.getState() == JobState.PENDING) {
-            workerActions.success()
-        }
-        jobsCount.decrementAndGet()
-        workerActions.dispatchCallbacks()
-        workerActions.notifyFinished()
-    }
-
-    open fun onPreProcess(task: Task<PARAMS>): Worker<PARAMS> {
-        (taskPreProcessors ?: ArrayList()).apply {
-            taskPreProcessors = this
-            add(task)
-        }
-        return this
-    }
-
-    open fun onPostProcess(task: Task<PARAMS>): Worker<PARAMS> {
-        (taskPostProcessors ?: ArrayList()).apply {
-            taskPostProcessors = this
-            add(task)
-        }
-        return this
-    }
-
-    open fun onMainTask(task: Task<PARAMS>): Worker<PARAMS> {
-        mainTask = task
-        return this
-    }
 }
-

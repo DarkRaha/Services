@@ -20,7 +20,6 @@ interface JobResponse<RESULT> {
     fun getCmd(): String?
     fun getTimeStart(): Long
     fun getTimeEnd(): Long
-    fun getPlugins(): Map<String, Plugin<RESULT>>?
+    fun getPlugin(name:String): Plugin<RESULT>?
     fun getProgressData(): ProgressData?
-    fun await(): JobResponse<RESULT>
 }

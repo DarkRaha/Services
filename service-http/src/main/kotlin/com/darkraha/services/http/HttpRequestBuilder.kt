@@ -1,32 +1,35 @@
 package com.darkraha.services.http
 
 
+import com.darkraha.services.core.deferred.Deferred
+import com.darkraha.services.core.deferred.DeferredServiceBuilder
+import com.darkraha.services.core.deferred.UserDeferred
 import java.io.File
 import java.io.InputStream
 import java.net.URL
 
-interface HttpRequestBuilder {
+interface HttpRequestBuilder<RESULT> {
 
-    fun url(url: String): HttpRequestBuilder
-    fun url(url: URL): HttpRequestBuilder
-    fun method(method: String = "GET"): HttpRequestBuilder
-    fun addHeader(name: String, value: String): HttpRequestBuilder
-    fun addStringParam(name: String, value: Any?): HttpRequestBuilder
-    fun addFileParam(name: String, file: File, mimetype: String): HttpRequestBuilder
-    fun setBody(body: String, mimetype: String): HttpRequestBuilder
-    fun setBody(body: File, mimetype: String): HttpRequestBuilder
-    fun setBody(body: InputStream, mimetype: String): HttpRequestBuilder
-    fun addCookie(cookie: Any): HttpRequestBuilder
+    fun url(url: String): HttpRequestBuilder<RESULT>
+    fun url(url: URL): HttpRequestBuilder<RESULT>
+    fun method(method: String = "GET"): HttpRequestBuilder<RESULT>
+    fun addHeader(name: String, value: String): HttpRequestBuilder<RESULT>
+    fun addStringParam(name: String, value: Any?): HttpRequestBuilder<RESULT>
+    fun addFileParam(name: String, file: File, mimetype: String): HttpRequestBuilder<RESULT>
+    fun setBody(body: String, mimetype: String): HttpRequestBuilder<RESULT>
+    fun setBody(body: File, mimetype: String): HttpRequestBuilder<RESULT>
+    fun setBody(body: InputStream, mimetype: String): HttpRequestBuilder<RESULT>
+    fun addCookie(cookie: Any): HttpRequestBuilder<RESULT>
 
-    fun <RESULT> build(cls: Class<RESULT>): Any
-    fun <RESULT> sync(cls: Class<RESULT>): Any
-    fun <RESULT> async(cls: Class<RESULT>): Any
+    fun build(): DeferredServiceBuilder<*, RESULT>
+    fun sync(): UserDeferred<RESULT>
+    fun async(): UserDeferred<RESULT>
 
-    fun addStringParams(params: List<Pair<String, Any?>>?): HttpRequestBuilder = apply {
+    fun addStringParams(params: List<Pair<String, Any?>>?): HttpRequestBuilder<RESULT> = apply {
         params?.forEach { addStringParam(it.first, it.second) }
     }
 
-    fun addStringParams(params: Map<String, Any?>?): HttpRequestBuilder = apply {
+    fun addStringParams(params: Map<String, Any?>?): HttpRequestBuilder<RESULT> = apply {
         params?.toList()?.forEach { addStringParam(it.first, it.second) }
     }
 

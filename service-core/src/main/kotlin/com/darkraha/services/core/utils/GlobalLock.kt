@@ -7,7 +7,7 @@ import java.util.concurrent.locks.ReentrantLock
  * Create "global" ReentrantLock for the monitor object. If object is no more monitored, then
  * ReentrantLock will be removed.
  *
- * For example, you have two download queries with same url. You can use url as monitored object.
+ * For example, you have several queries to work with same file. You can use file as monitored object.
  * As result one of query will be wait other.
  *
  *

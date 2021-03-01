@@ -5,12 +5,12 @@ plugins {
 
 allprojects {
     apply(plugin = "java-library")
-    apply(plugin = "maven")
     apply(plugin = "kotlin")
     version = "1.0"
 
     repositories {
         mavenCentral()
+        maven (url = "https://jitpack.io")
     }
 
     configure<JavaPluginConvention> {
@@ -38,6 +38,7 @@ allprojects {
 }
 
 subprojects {
+    apply(plugin = "maven")
     group = "com.github.darkraha.services"
 }
 
@@ -50,21 +51,7 @@ dependencies {
     api(project(":service-http"))
     api(project(":webcrawler"))
 }
-tasks {
 
-    jar {
-        subprojects.forEach {
-            dependsOn(":${it.name}:jar")
-        }
-        subprojects.forEach { subproject ->
-            from({
-                subproject.configurations.archives.allArtifacts.files.map {
-                    zipTree(it)
-                }
-            })
-        }
-    }
-}
 
 
 tasks.register<Jar>("fatJar") {

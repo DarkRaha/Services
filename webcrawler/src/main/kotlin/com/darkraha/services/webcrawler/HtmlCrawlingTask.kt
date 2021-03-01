@@ -2,7 +2,7 @@ package com.darkraha.services.webcrawler
 
 import com.darkraha.services.core.job.JobResponse
 import com.darkraha.services.core.job.MutableProgressData
-import com.darkraha.services.core.worker.Task
+import com.darkraha.services.core.job.Task
 import com.darkraha.services.core.worker.WorkerActions
 import com.darkraha.services.http.HttpClient
 import org.jsoup.Jsoup
@@ -18,8 +18,11 @@ import kotlin.concurrent.withLock
 /**
  * @author Rahul Verma
  */
-open class HtmlCrawlingTask(protected var httpClient: HttpClient) : Task<CrawlerRequest> {
-    override fun onTask(params: CrawlerRequest?, workerActions: WorkerActions, jobResponse: JobResponse<*>) {
+open class HtmlCrawlingTask(protected var httpClient: HttpClient) : Task<CrawlerRequest>() {
+
+
+    override fun onTask(params: CrawlerRequest?, workerActions: WorkerActions<*>,
+                                jobResponse: JobResponse<*>) {
 
         val state = CrawlerState().also {
             it.request = params!!
@@ -228,6 +231,6 @@ class CrawlerState {
     val mPendingUrl: LinkedBlockingQueue<HandlingUri> = LinkedBlockingQueue<HandlingUri>()
     val result = MutableCrawlingResult()
     lateinit var request: CrawlerRequest
-    lateinit var actions: WorkerActions
+    lateinit var actions: WorkerActions<*>
     lateinit var jobResponse: JobResponse<*>
 }

@@ -11,12 +11,12 @@ import java.io.InputStream
  *
  *@author Rahul Verma
  */
-interface WorkerActions : JobNotifyProgress {
+interface WorkerActions<RESULT> : JobNotifyProgress {
     /**
      * Hold result of job.
      */
-    val result: JobResult<*>
-    val syncObject: Any?
+    val result: JobResult<RESULT>
+
 
     /**
      * Set job to pending state, job started in background.
@@ -26,7 +26,7 @@ interface WorkerActions : JobNotifyProgress {
     /**
      * Set job to the success state, override result data.
      */
-    fun success(tmpResult: Any?, file: File? = null, url: String? = null, istream: InputStream? = null)
+    fun successWithData(value: RESULT?, file: File? = null, url: String? = null, istream: InputStream? = null)
 
     /**
      * Set job to the success state, save current result data.
@@ -46,5 +46,4 @@ interface WorkerActions : JobNotifyProgress {
 
     fun dispatchCallbacks()
 
-    fun notifyFinished()
 }

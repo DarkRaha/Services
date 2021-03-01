@@ -1,11 +1,11 @@
 package com.darkraha.services.webcrawler
 
-import com.darkraha.services.core.deferred.DeferredFactory
+import com.darkraha.services.core.deferred.Deferred
 import com.darkraha.services.core.deferred.DeferredServiceBuilder
-import com.darkraha.services.core.deferred.DeferredUserCallbacks
+import com.darkraha.services.core.deferred.UserDeferred
 import java.net.URI
 
-class DeferredCrawlerRequestBuilder(val deferredFactory: DeferredFactory<CrawlerRequest>) {
+class DeferredCrawlerRequestBuilder(val deferred: Deferred<CrawlerRequest, CrawlingResult>) {
     private val request = MutableCrawlerRequest()
 
     fun url(url: String): DeferredCrawlerRequestBuilder = this.apply { request.mUrl = url; request.mUri = null }
@@ -22,22 +22,20 @@ class DeferredCrawlerRequestBuilder(val deferredFactory: DeferredFactory<Crawler
     fun collectFromPages(v: Boolean) = this.apply { request.mCollectFromPages = v }
     fun ignoreLastSlash(v: Boolean) = this.apply { request.mIgnoreLastSlash = v }
 
-    fun build(): DeferredServiceBuilder<CrawlingResult> {
+    fun build(): DeferredServiceBuilder<CrawlerRequest, CrawlingResult> {
         when {
             request.mUrl == null -> request.mUrl = request.uri.toString()
             request.mUri == null -> request.mUri = URI.create(request.url)
         }
-
-        return deferredFactory.newDeferred(CrawlingResult::class.java).apply {
-            job.params = request
-        }
+        deferred.job.params=request
+        return deferred
     }
 
-    fun async(): DeferredUserCallbacks<CrawlingResult> {
+    fun async(): UserDeferred<CrawlingResult> {
         return build().async()
     }
 
-    fun sync(): DeferredUserCallbacks<CrawlingResult> {
+    fun sync(): UserDeferred<CrawlingResult> {
         return build().sync()
     }
 

@@ -1,9 +1,9 @@
 package com.darkraha.services.http
 
 
-import com.darkraha.services.core.deferred.DeferredFactory
+import com.darkraha.services.core.deferred.Deferred
 import com.darkraha.services.core.deferred.DeferredServiceBuilder
-import com.darkraha.services.core.deferred.DeferredUserCallbacks
+import com.darkraha.services.core.deferred.UserDeferred
 import okhttp3.FormBody
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
@@ -19,7 +19,7 @@ import java.net.URL
 /**
  * @author Rahul Verma
  */
-class DeferredHttpRequestBuilder(val deferredFactory: DeferredFactory<Request>) : HttpRequestBuilder {
+class DeferredHttpRequestBuilder<RESULT>(val forDeferred: Deferred<Request,RESULT>) : HttpRequestBuilder<RESULT> {
     private val builder = Request.Builder()
     private var mMethod: String? = null
     private var mStrBody: String? = null
@@ -31,24 +31,24 @@ class DeferredHttpRequestBuilder(val deferredFactory: DeferredFactory<Request>) 
     private var params: ArrayList<Pair<String, String>>? = null
     private var mProgressRequestBody: ProgressRequestBody? = null
 
-    override fun url(url: String): DeferredHttpRequestBuilder = apply {
+    override fun url(url: String): DeferredHttpRequestBuilder<RESULT> = apply {
         mUrl = url
         builder.url(url)
     }
 
-    override fun url(url: URL): DeferredHttpRequestBuilder = apply {
+    override fun url(url: URL): DeferredHttpRequestBuilder<RESULT> = apply {
         builder.url(url)
     }
 
-    override fun method(method: String): DeferredHttpRequestBuilder = apply {
+    override fun method(method: String): DeferredHttpRequestBuilder<RESULT> = apply {
         this.mMethod = method
     }
 
-    override fun addHeader(name: String, value: String): DeferredHttpRequestBuilder = apply {
+    override fun addHeader(name: String, value: String): DeferredHttpRequestBuilder<RESULT> = apply {
         builder.addHeader(name, value)
     }
 
-    override fun addStringParam(name: String, value: Any?): DeferredHttpRequestBuilder = apply {
+    override fun addStringParam(name: String, value: Any?): DeferredHttpRequestBuilder<RESULT> = apply {
         value?.also {
             (params ?: ArrayList()).apply {
                 params = this
@@ -57,7 +57,8 @@ class DeferredHttpRequestBuilder(val deferredFactory: DeferredFactory<Request>) 
         }
     }
 
-    override fun addFileParam(name: String, file: File, mimetype: String): DeferredHttpRequestBuilder = apply {
+    override fun addFileParam(name: String, file: File, mimetype: String):
+            DeferredHttpRequestBuilder<RESULT> = apply {
         if (mFileBody != null || mStrBody != null) {
             throw IllegalStateException("Can not create multipart body, another body already assigned by body() method")
         }
@@ -71,7 +72,7 @@ class DeferredHttpRequestBuilder(val deferredFactory: DeferredFactory<Request>) 
         this.mMimetype = mimetype
     }
 
-    override fun setBody(body: File, mimetype: String): DeferredHttpRequestBuilder = apply {
+    override fun setBody(body: File, mimetype: String): DeferredHttpRequestBuilder<RESULT> = apply {
         if (mFileBody != null || mStrBody != null || mFileParam != null) {
             throw IllegalStateException("Another body already assigned by body() or addFileParam() method")
         }
@@ -79,11 +80,11 @@ class DeferredHttpRequestBuilder(val deferredFactory: DeferredFactory<Request>) 
         this.mMimetype = mimetype
     }
 
-    override fun setBody(body: InputStream, mimetype: String): DeferredHttpRequestBuilder = apply {
+    override fun setBody(body: InputStream, mimetype: String): DeferredHttpRequestBuilder<RESULT> = apply {
         TODO("Not yet implemented")
     }
 
-    override fun setBody(body: String, mimetype: String): DeferredHttpRequestBuilder = apply {
+    override fun setBody(body: String, mimetype: String): DeferredHttpRequestBuilder<RESULT> = apply {
         if (mFileBody != null || mStrBody != null || mFileParam != null) {
             throw IllegalStateException("Another body already assigned by body() or addFileParam() method")
         }
@@ -91,36 +92,35 @@ class DeferredHttpRequestBuilder(val deferredFactory: DeferredFactory<Request>) 
         this.mMimetype = mimetype
     }
 
-    override fun addCookie(cookie: Any): DeferredHttpRequestBuilder = apply {
+    override fun addCookie(cookie: Any): DeferredHttpRequestBuilder<RESULT> = apply {
         TODO("Not yet implemented")
     }
 
 
-    override fun addStringParams(params: List<Pair<String, Any?>>?): DeferredHttpRequestBuilder = apply {
+    override fun addStringParams(params: List<Pair<String, Any?>>?): DeferredHttpRequestBuilder<RESULT> = apply {
         params?.forEach { addStringParam(it.first, it.second) }
     }
 
-    override fun addStringParams(params: Map<String, Any?>?): DeferredHttpRequestBuilder = apply {
+    override fun addStringParams(params: Map<String, Any?>?): DeferredHttpRequestBuilder<RESULT> = apply {
         params?.toList()?.forEach { addStringParam(it.first, it.second) }
     }
 
-    override fun addCookie(name: String, value: String): DeferredHttpRequestBuilder = apply {
+    override fun addCookie(name: String, value: String): DeferredHttpRequestBuilder<RESULT> = apply {
         addHeader("Cookie", "${name}=${value}")
     }
 
-    override fun <RESULT> build(cls: Class<RESULT>): DeferredServiceBuilder<RESULT> {
-        return deferredFactory.newDeferred(cls).apply {
-            job.params = buildRequest()
-            mProgressRequestBody?.jobNotifyProgress = this
-        }
+    override fun build(): DeferredServiceBuilder<Request,RESULT> {
+        forDeferred.job.params = buildRequest()
+        mProgressRequestBody?.jobNotifyProgress = forDeferred.workerHelper
+        return forDeferred
     }
 
-    override fun <RESULT> async(cls: Class<RESULT>): DeferredUserCallbacks<RESULT> {
-        return build(cls).async()
+    override fun async(): UserDeferred<RESULT> {
+        return build().async()
     }
 
-    override fun <RESULT> sync(cls: Class<RESULT>): DeferredUserCallbacks<RESULT> {
-        return build(cls).sync()
+    override fun sync(): UserDeferred<RESULT> {
+        return build().sync()
     }
 
     //------------------------------------------------------------------------------
