@@ -16,7 +16,7 @@ Then add the dependency
 ```
 	dependencies {
           # all modules
-          implementation ("com.github.darkraha.services:services:all:<version>")
+          implementation ("com.github.darkraha.services:all:<version>")
 	        # or only concrete module
           # implementation ("com.github.darkraha.services:service-core:<version>")
           # implementation ("com.github.darkraha.services:service-http:<version>")
