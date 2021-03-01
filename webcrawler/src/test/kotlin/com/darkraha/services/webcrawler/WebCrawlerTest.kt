@@ -247,7 +247,7 @@ internal class WebCrawlerTest {
     }
 
     @Test
-    fun testCrawling() {
+    fun testCrawlingWithPlugin() {
         var sm: String? = null
         val crawler = WebCrawler.newInstance()
         crawler.newCrawlingTask(mockWebServer.url(URL_PAGE).toString())

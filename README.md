@@ -16,11 +16,11 @@ Then add the dependency
 ```
 	dependencies {
           # all modules
-          implementation ("com.github.darkraha.services:services:1.064")
+          implementation ("com.github.darkraha.services:services:<version>")
 	        # or only concrete module
-          # implementation ("com.github.darkraha.services:service-core:1.064")
-          # implementation ("com.github.darkraha.services:service-http:1.064")
-          # implementation ("com.github.darkraha.services:webcrawler:1.064")
+          # implementation ("com.github.darkraha.services:service-core:<version>")
+          # implementation ("com.github.darkraha.services:service-http:<version>")
+          # implementation ("com.github.darkraha.services:webcrawler:<version>")
 	}
 ```
 
@@ -56,7 +56,7 @@ val crawler = WebCrawler.newInstance()
         crawler.newCrawlingTask("https://socode4.com/app/en")
            // .maxLinks(40)
             .build()
-            .plugin(
+            .subscribe(
                 SitemapGen.Builder()
                  //   .changeFreq(SitemapGen.ChangeFreq.weekly)
                     .build()
@@ -64,9 +64,10 @@ val crawler = WebCrawler.newInstance()
             .onProgress {
                 println(it.getProgressData()!!.action)
                 val doc = it.getProgressData().currentData // 
-            }.sync().onFinish {
-                val sitemapGen = it.getPlugins()!![SitemapGen.NAME] as SitemapGen
-                println("total pages ${sitemapGen.countPages}")
-                File("socode-sitemap.xml").writeText(sitemapGen.result, Charset.defaultCharset())
+            }.async().onFinish {
+                val sitemapGen = it.getPlugin(SitemapGen.NAME) as SitemapGen
+                val sm = sitemapGen.result.toString()
+                
+                File("socode-sitemap.xml").writeText(sm, Charset.defaultCharset())
             }
 ```
