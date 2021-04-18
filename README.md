@@ -63,6 +63,8 @@ val crawler = WebCrawler.newInstance()
                     .build()
             )
             .onProgress {
+	        val handlingURi = it.getProgressData()?.currentData as HandlingUri
+	        val doc: Document = handlingURi.doc
                 println(it.getProgressData()!!.action)
             }.async().onFinish {
                 val sitemapGen = it.getPlugin(SitemapGen.NAME) as SitemapGen
