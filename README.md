@@ -23,7 +23,7 @@ Then add the dependency
           # implementation ("com.github.darkraha.services:webcrawler:<version>")
 	}
 ```
-Current version 2.0.01
+Current version 2.0.02
 
 ## http client
 Service interface for http / https requests with methods
