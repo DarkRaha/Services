@@ -20,9 +20,6 @@ class JobResult<RESULT>(val clsTarget: Class<RESULT>) {
     var isExpectedValue = false
     var mimetype: String? = null
     var rawResult: Any? = null
-
-    var progressData: ProgressData? = null
-
     /**
      * Reason of error or cancellation
      */

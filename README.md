@@ -63,11 +63,9 @@ val crawler = WebCrawler.newInstance()
             )
             .onProgress {
                 println(it.getProgressData()!!.action)
-                val doc = it.getProgressData().currentData // 
             }.async().onFinish {
                 val sitemapGen = it.getPlugin(SitemapGen.NAME) as SitemapGen
                 val sm = sitemapGen.result.toString()
-                
                 File("socode-sitemap.xml").writeText(sm, Charset.defaultCharset())
             }
 ```

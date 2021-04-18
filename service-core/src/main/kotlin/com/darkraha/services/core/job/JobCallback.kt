@@ -3,6 +3,8 @@ package com.darkraha.services.core.job
 import com.darkraha.services.core.worker.executors.MainThread
 import com.darkraha.services.core.worker.executors.WorkerExecutor
 import java.lang.ref.WeakReference
+import java.sql.Date.valueOf
+import java.util.*
 import java.util.function.Consumer
 
 interface JobCallback<T> {
@@ -35,7 +37,11 @@ open class JobCallbackState<T>(
 
     fun isOwnerAllowed(): Boolean = if (owner == null) true else owner?.get() != null
 
+
+
+
     override fun dispatchCallback(t: JobResponse<T>, targetState: JobState) {
+
         if (state == targetState && isOwnerAllowed()) {
             if (wExe != null) {
                 wExe.execute {

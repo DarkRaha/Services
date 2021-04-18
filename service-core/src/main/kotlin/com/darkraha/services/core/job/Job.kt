@@ -19,6 +19,8 @@ class Job<PARAM, RESULT>(clsTarget: Class<RESULT>) : JobResponse<RESULT> {
     val state = AtomicReference(JobState.PREPARE)
     var callbacks: MutableList<JobCallback<RESULT>>? = null
 
+    var progress: ProgressData? = null
+
 
     fun doAddCallbacks(
         cb: JobCallbacks<RESULT>
@@ -151,7 +153,7 @@ class Job<PARAM, RESULT>(clsTarget: Class<RESULT>) : JobResponse<RESULT> {
     override fun getCmd(): String? = info.cmd
     override fun getTimeStart(): Long = info.timeStart
     override fun getTimeEnd(): Long = info.timeEnd
-    override fun getProgressData(): ProgressData? = result.progressData
+    override fun getProgressData(): ProgressData? = progress
     override fun getPlugin(name: String): Plugin<RESULT>? = callbacks?.find {
         it is Plugin && it.name == name
     } as Plugin<RESULT>?

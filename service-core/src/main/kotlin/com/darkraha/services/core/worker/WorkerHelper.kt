@@ -54,9 +54,9 @@ class WorkerHelper<PARAMS, RESULT>(deferred: Deferred<PARAMS, RESULT>) : WorkerH
 
     override fun notifyProgress(dataProgress: ProgressData) {
         jobLock.withLock {
-            deferred.job.apply {
-                result.progressData = dataProgress
-                doDispatchCallbacks(JobState.PROGRESS)
+            deferred.job.also {
+                it.progress = dataProgress
+                it.doDispatchCallbacks(JobState.PROGRESS)
             }
         }
     }

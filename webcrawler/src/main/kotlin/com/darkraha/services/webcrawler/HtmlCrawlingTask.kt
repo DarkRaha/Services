@@ -41,14 +41,11 @@ open class HtmlCrawlingTask(protected var httpClient: HttpClient) : Task<Crawler
         ) {
             handlePending(state)
             state.lock.withLock {
-                println("onTask count pending: ${state.countPending.get()}")
                 if (state.countPending.get() > 0) {
                     state.condUrlHandled.await(1, TimeUnit.MINUTES)
                 }
-                println("onTask after waiting ${state.countPending.get()}")
             }
         }
-        println("onTask result ${state.result.mHandledUrls.size}")
     }
 
     protected open fun handlePending(state: CrawlerState) {
@@ -83,7 +80,6 @@ open class HtmlCrawlingTask(protected var httpClient: HttpClient) : Task<Crawler
                         lock.withLock {
                             state.countPending.decrementAndGet()
                             state.condUrlHandled.signalAll()
-                            println("handlePending on success ${localHandlingUri.url} ")
                         }
                     }.onError {
                         result.mHandledUrls[url]!!.exception = it.getError()
@@ -94,7 +90,6 @@ open class HtmlCrawlingTask(protected var httpClient: HttpClient) : Task<Crawler
                     }
                 }
                 handlingUri = state.mPendingUrl.poll()
-                println("handlingUri next url ${handlingUri?.url} size = ${state.mPendingUrl.size}")
             }
         }
     }
@@ -150,6 +145,8 @@ open class HtmlCrawlingTask(protected var httpClient: HttpClient) : Task<Crawler
         var selected = elements
 
         selected = selected.not("[download]")
+            .not("[href='']")
+            .not("[href='javascript:void(0)']")
 
         request.linkExcludedCss?.apply {
             forEach { selected = selected.not(it) }
@@ -168,7 +165,13 @@ open class HtmlCrawlingTask(protected var httpClient: HttpClient) : Task<Crawler
     ) {
         val request = state.request
         val result = state.result
-        val tmpUrl = URL(urlFollow)
+
+        val tmpUrl = try {
+            URL(urlFollow)
+        }catch (e: Exception){
+            println("error from ${uriFrom.fromPage}, urlFollow = ${urlFollow}")
+            return
+        }
 
         if (tmpUrl.protocol != request.uri.scheme || urlFollow.startsWith('#')) {
             return
