@@ -15,9 +15,6 @@ Add it in your root build.gradle at the end of repositories:
 Then add the dependency
 ```
 	dependencies {
-          # all modules
-          implementation ("com.github.darkraha.services:all:<version>")
-	        # or only concrete module
           # implementation ("com.github.darkraha.services:service-core:<version>")
           # implementation ("com.github.darkraha.services:service-http:<version>")
           # implementation ("com.github.darkraha.services:webcrawler:<version>")
