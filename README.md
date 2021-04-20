@@ -15,6 +15,7 @@ Add it in your root build.gradle at the end of repositories:
 Then add the dependency
 ```
 	dependencies {
+	  # implementation ("com.github.darkraha.services:all:<version>")
           # implementation ("com.github.darkraha.services:service-core:<version>")
           # implementation ("com.github.darkraha.services:service-http:<version>")
           # implementation ("com.github.darkraha.services:webcrawler:<version>")
@@ -34,7 +35,7 @@ Service interface for http / https requests with methods
 Built-in implementation wrap OkHttpClient.
 
 ```
-HttpClientOk.newInstance().downloadFile("https://publicobject.com/helloworld.txt")
+HttpServiceOk.newInstance().downloadFile("https://publicobject.com/helloworld.txt")
     .onProgress {
         val progressData = it.getProgressData()
         println("read ${progressData?.current} total ${progressData?.total}")
