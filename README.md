@@ -21,7 +21,7 @@ Then add the dependency
           # implementation ("com.github.darkraha.services:webcrawler:<version>")
 	}
 ```
-Current version 2.0.02
+Current version 2.0.03
 
 ## http client
 Service interface for http / https requests with methods
