@@ -23,6 +23,13 @@ open class HttpServiceOk protected constructor() : TypedService<Request>(Request
     var jsonConverter: JsonConverterA? = null
         protected set
 
+    var userAgent = ""
+
+    /**
+     * common headers
+     */
+    val headers = mutableMapOf<String, String>()
+
     override fun checkSetup(): Boolean {
         return defaultWorker != null && httpClient != null && jsonConverter != null && defaultTask != null
     }
@@ -54,7 +61,15 @@ open class HttpServiceOk protected constructor() : TypedService<Request>(Request
         clsResult: Class<RESULT>
     )
             : DeferredHttpRequestBuilder<RESULT> {
-        return DeferredHttpRequestBuilder(newDeferred(Request::class.java, clsResult)).url(url)
+        return DeferredHttpRequestBuilder(newDeferred(Request::class.java, clsResult)).url(url).apply {
+            if (userAgent.isNotEmpty()) {
+                addHeader("User-Agent", userAgent)
+            }
+
+            headers.forEach {
+                addHeader(it.key, it.value)
+            }
+        }
     }
 
 
