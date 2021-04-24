@@ -15,15 +15,13 @@ Add it in your root build.gradle at the end of repositories:
 Then add the dependency
 ```
 	dependencies {
-          # all modules
-          implementation ("com.github.darkraha.services:all:<version>")
-	        # or only concrete module
+	  # implementation ("com.github.darkraha.services:all:<version>")
           # implementation ("com.github.darkraha.services:service-core:<version>")
           # implementation ("com.github.darkraha.services:service-http:<version>")
           # implementation ("com.github.darkraha.services:webcrawler:<version>")
 	}
 ```
-Current version 2.0.01
+Current version 2.0.02
 
 ## http client
 Service interface for http / https requests with methods
@@ -37,7 +35,7 @@ Service interface for http / https requests with methods
 Built-in implementation wrap OkHttpClient.
 
 ```
-HttpClientOk.newInstance().downloadFile("https://publicobject.com/helloworld.txt")
+HttpServiceOk.newInstance().downloadFile("https://publicobject.com/helloworld.txt")
     .onProgress {
         val progressData = it.getProgressData()
         println("read ${progressData?.current} total ${progressData?.total}")
@@ -63,6 +61,8 @@ val crawler = WebCrawler.newInstance()
                     .build()
             )
             .onProgress {
+	        val handlingURi = it.getProgressData()?.currentData as HandlingUri
+	        val doc: Document = handlingURi.doc
                 println(it.getProgressData()!!.action)
             }.async().onFinish {
                 val sitemapGen = it.getPlugin(SitemapGen.NAME) as SitemapGen
