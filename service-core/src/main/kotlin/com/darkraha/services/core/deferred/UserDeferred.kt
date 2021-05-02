@@ -34,12 +34,6 @@ interface UserDeferred<RESULT> {
         cb: Consumer<JobResponse<RESULT>>
     ): UserDeferred<RESULT>
 
-
-    fun uiBeforeStart(
-        objWeak: Any? = null,
-        cb: Consumer<JobResponse<RESULT>>
-    ): UserDeferred<RESULT> = onBeforeStart(objWeak, true, cb)
-
     fun onFinish(
         objWeak: Any? = null,
         onMainThread: Boolean = false,
@@ -76,6 +70,11 @@ interface UserDeferred<RESULT> {
         objWeak: Any? = null,
         cb: Consumer<JobResponse<RESULT>>
     ): UserDeferred<RESULT> = onProgress(objWeak, true, cb)
+
+    fun uiBeforeStart(
+        objWeak: Any? = null,
+        cb: Consumer<JobResponse<RESULT>>
+    ): UserDeferred<RESULT> = onBeforeStart(objWeak, true, cb)
 }
 
 

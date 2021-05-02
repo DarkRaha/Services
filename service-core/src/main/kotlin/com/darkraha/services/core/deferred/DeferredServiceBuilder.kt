@@ -88,6 +88,11 @@ interface DeferredServiceBuilder<PARAMS, RESULT> : DeferredUserBuilder<RESULT>, 
         objWeak: Any?,
         cb: Consumer<JobResponse<RESULT>>
     ): DeferredServiceBuilder<PARAMS, RESULT> = onProgress(objWeak, true, cb)
+
+    override fun uiBeforeStart(
+        objWeak: Any?,
+        cb: Consumer<JobResponse<RESULT>>
+    ): DeferredServiceBuilder<PARAMS, RESULT> = onBeforeStart(objWeak, true, cb)
 }
 
 
