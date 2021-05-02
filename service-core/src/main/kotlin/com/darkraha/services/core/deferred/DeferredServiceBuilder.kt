@@ -71,6 +71,23 @@ interface DeferredServiceBuilder<PARAMS, RESULT> : DeferredUserBuilder<RESULT>, 
      * Can be used on request stage to specify the  expected mimetype.
      */
     fun setResultFile(file: File?): DeferredServiceBuilder<PARAMS, RESULT>
+
+    //------------------------------------------------------
+    // ui shorthands
+    override fun uiSuccess(
+        objWeak: Any?,
+        cb: Consumer<JobResponse<RESULT>>
+    ): DeferredServiceBuilder<PARAMS, RESULT> = onSuccess(objWeak, true, cb)
+
+    override fun uiError(
+        objWeak: Any?,
+        cb: Consumer<JobResponse<RESULT>>
+    ): DeferredServiceBuilder<PARAMS, RESULT> = onError(objWeak, true, cb)
+
+    override fun uiProgress(
+        objWeak: Any?,
+        cb: Consumer<JobResponse<RESULT>>
+    ): DeferredServiceBuilder<PARAMS, RESULT> = onProgress(objWeak, true, cb)
 }
 
 

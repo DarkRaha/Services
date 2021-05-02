@@ -38,8 +38,6 @@ open class JobCallbackState<T>(
     fun isOwnerAllowed(): Boolean = if (owner == null) true else owner?.get() != null
 
 
-
-
     override fun dispatchCallback(t: JobResponse<T>, targetState: JobState) {
 
         if (state == targetState && isOwnerAllowed()) {
@@ -129,6 +127,10 @@ open class JobCallbacks<T>(pOwner: Any?, val wExe: WorkerExecutor<*>? = MainThre
     }
 }
 
+/**
+ * Designed to get additional result of performing job. For example, crawler service traverse on on pages, one plugin
+ * can check external broken links, other build sitemap and etc.
+ */
 open class Plugin<T> : JobCallbacks<T>(null, false) {
     lateinit var name: String
         protected set

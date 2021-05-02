@@ -12,7 +12,9 @@ import com.darkraha.services.core.worker.executors.TPoolWorkerExecutor
 import com.darkraha.services.core.worker.executors.WorkerExecutor
 import java.util.concurrent.ExecutorService
 
-
+/**
+ *
+ */
 class Worker(var exe: WorkerExecutor<*>) : WorkerA() {
     constructor(e: ExecutorService) : this(TPoolWorkerExecutor(e))
 

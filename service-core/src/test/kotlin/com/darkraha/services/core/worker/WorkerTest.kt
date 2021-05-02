@@ -5,6 +5,7 @@ import com.darkraha.services.core.deferred.Deferred
 import com.darkraha.services.core.job.JobResponse
 import com.darkraha.services.core.job.MutableProgressData
 import com.darkraha.services.core.job.Task
+import com.darkraha.services.core.service.Service
 import com.darkraha.services.core.utils.Common
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -23,7 +24,7 @@ internal class WorkerTest {
         isOnTask = false
         isCallbackCalled = IsCallbackCalled()
         deferred = Deferred(String::class.java)
-        deferred.worker = Worker(Common.newExecutorService(5))
+        deferred.worker = Worker(Service.newExecutorService(5))
         deferred.workerHelper = deferred.worker.newHelper(deferred)
 
         deferred.job.tasks.main = object : Task<Unit>() {

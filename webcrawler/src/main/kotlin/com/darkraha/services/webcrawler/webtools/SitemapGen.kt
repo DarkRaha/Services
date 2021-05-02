@@ -1,15 +1,15 @@
 package com.darkraha.services.webcrawler.webtools
 
-import com.darkraha.services.core.deferred.DeferredUserBuilder
+
 import com.darkraha.services.core.job.Plugin
 import com.darkraha.services.core.job.JobResponse
+import com.darkraha.services.core.service.Service
 import com.darkraha.services.core.utils.Common
 import com.darkraha.services.webcrawler.CrawlingResult
 import com.darkraha.services.webcrawler.HandlingUri
 import com.darkraha.services.webcrawler.appendCnt
 import java.util.*
 import java.util.concurrent.locks.ReentrantLock
-import java.util.function.Consumer
 import kotlin.concurrent.withLock
 
 /**
@@ -26,12 +26,12 @@ class SitemapGen : Plugin<CrawlingResult>() {
     private var isWithPriority = false
     private val sb = StringBuilder()
     private val lock = ReentrantLock()
-    private var date: String = Common.w3cDateTimeFormat.format(Date())
+    private var date: String = Service.w3cDateTimeFormat.format(Date())
 
     var countPages: Int = 0
         private set
 
-    override val result: Any?
+    override val result: Any
         get() = sb.toString()
 
 
@@ -118,10 +118,10 @@ class SitemapGen : Plugin<CrawlingResult>() {
         fun comment(v: String) = this.apply { sitemapGen.comment = v.trim() }
         fun ignoreDate(v: Boolean) = this.apply { sitemapGen.isIgnoreDate = v }
         fun customDate(v: Boolean) =
-            this.apply { sitemapGen.isCustomDate = v; sitemapGen.date = Common.w3cDateTimeFormat.format(Date()) }
+            this.apply { sitemapGen.isCustomDate = v; sitemapGen.date = Service.w3cDateTimeFormat.format(Date()) }
 
         fun customDate(d: Date) =
-            this.apply { sitemapGen.isCustomDate = true; sitemapGen.date = Common.w3cDateTimeFormat.format(d) }
+            this.apply { sitemapGen.isCustomDate = true; sitemapGen.date = Service.w3cDateTimeFormat.format(d) }
 
         fun changeFreq(v: ChangeFreq) = this.apply { sitemapGen.changeFreq = v }
         fun withPriority(v: Boolean) = this.apply { sitemapGen.isWithPriority = v }

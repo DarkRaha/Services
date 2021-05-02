@@ -4,6 +4,7 @@ import com.darkraha.services.core.IsCallbackCalled
 import com.darkraha.services.core.deferred.Deferred
 import com.darkraha.services.core.job.Job
 import com.darkraha.services.core.job.JobState
+import com.darkraha.services.core.service.Service
 import com.darkraha.services.core.utils.Common
 import org.junit.jupiter.api.Test
 
@@ -30,7 +31,7 @@ internal class WorkerHelperTest {
     fun onBeforeEach() {
         isCallbackCalled = IsCallbackCalled()
         deferred = Deferred(String::class.java)
-        val worker = Worker(Common.newExecutorService(5))
+        val worker = Worker(Service.newExecutorService(5))
         deferred.worker = worker
         deferred.workerHelper = worker.newHelper(deferred)
     }
@@ -61,7 +62,7 @@ internal class WorkerHelperTest {
     @Test
     fun dispatchCallbacks() {
         deferred = Deferred(String::class.java)
-        val worker = Worker(Common.newExecutorService(5))
+        val worker = Worker(Service.newExecutorService(5))
         deferred.worker = worker
         deferred.workerHelper = worker.newHelper(deferred)
         addCallbacks()
