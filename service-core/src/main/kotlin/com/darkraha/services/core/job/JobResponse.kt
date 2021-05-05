@@ -22,4 +22,5 @@ interface JobResponse<RESULT> {
     fun getTimeEnd(): Long
     fun getPlugin(name:String): Plugin<RESULT>?
     fun getProgressData(): ProgressData?
+
 }

@@ -6,7 +6,6 @@ import com.darkraha.services.core.job.JobResponse
 import com.darkraha.services.core.job.MutableProgressData
 import com.darkraha.services.core.job.Task
 import com.darkraha.services.core.service.Service
-import com.darkraha.services.core.utils.Common
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -25,7 +24,6 @@ internal class WorkerTest {
         isCallbackCalled = IsCallbackCalled()
         deferred = Deferred(String::class.java)
         deferred.worker = Worker(Service.newExecutorService(5))
-        deferred.workerHelper = deferred.worker.newHelper(deferred)
 
         deferred.job.tasks.main = object : Task<Unit>() {
             override fun onTask(params: Unit?, workerActions: WorkerActions<*>, jobResponse: JobResponse<*>) {
@@ -37,9 +35,11 @@ internal class WorkerTest {
     fun addCallbacks() {
         deferred
             .onBeforeStart {
+                println("onBeforeStart")
                 isCallbackCalled.onPending = true
             }
             .onError {
+
                 isCallbackCalled.onError = true
             }
             .onCancel {
@@ -49,6 +49,7 @@ internal class WorkerTest {
                 isCallbackCalled.onProgress = true
             }
             .onSuccess {
+               println("onSuccess")
                 isCallbackCalled.onSuccess = true
             }.onFinish {
                 isCallbackCalled.onFinish = true
@@ -99,7 +100,7 @@ internal class WorkerTest {
                 workerActions: WorkerActions<*>,
                 jobResponse: JobResponse<*>
             ) {
-                workerActions.error(IllegalStateException("test error"))
+                workerActions.setError(IllegalStateException("test error"))
             }
         }
         addCallbacks()
@@ -127,7 +128,7 @@ internal class WorkerTest {
                 workerActions: WorkerActions<*>,
                 jobResponse: JobResponse<*>
             ) {
-                workerActions.reject("test canceled")
+                workerActions.setReject("test canceled")
             }
         }
         addCallbacks()

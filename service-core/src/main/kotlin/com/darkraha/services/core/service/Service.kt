@@ -19,18 +19,17 @@ open class Service {
         defaultWorker = defaultWorker ?: Worker(newExecutorService(5))
     }
 
-    open fun <PARAM, RESULT> newDeferred(clsParam: Class<PARAM>, clsResult: Class<RESULT>) =
+    open fun <PARAM, RESULT> newDeferred(clsParam: Class<PARAM>, clsResult: Class<RESULT>?) =
         Deferred<PARAM, RESULT>(clsResult).apply {
-            if (defaultWorker==null) {
+            if (defaultWorker == null) {
                 setupDefault()
             }
             worker = defaultWorker!!
-            workerHelper = defaultWorker!!.newHelper(this)
         }
 
     companion object {
-        val w3cDateTimeFormat : SimpleDateFormat by lazy{ SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX") }
-        val w3cDateFormat : SimpleDateFormat by lazy{ SimpleDateFormat("yyyy-MM-dd") }
+        val w3cDateTimeFormat: SimpleDateFormat by lazy { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX") }
+        val w3cDateFormat: SimpleDateFormat by lazy { SimpleDateFormat("yyyy-MM-dd") }
 
         fun newExecutorService(maxCore: Int, q: BlockingQueue<Runnable> = LinkedBlockingQueue()): ExecutorService {
             return ThreadPoolExecutor(

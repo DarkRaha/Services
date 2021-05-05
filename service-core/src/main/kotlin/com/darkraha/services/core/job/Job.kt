@@ -11,9 +11,10 @@ import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Consumer
 
 
-class Job<PARAM, RESULT>(clsTarget: Class<RESULT>) : JobResponse<RESULT> {
+class Job<PARAM, RESULT>(clsTarget: Class<RESULT>?) : JobResponse<RESULT> {
     val info = JobInfo()
     var params: PARAM? = null
+    var exeCode: ( (PARAM?)->RESULT? )?=null
     val result = JobResult(clsTarget)
     val tasks = JobTasks<PARAM>()
     val state = AtomicReference(JobState.PREPARE)

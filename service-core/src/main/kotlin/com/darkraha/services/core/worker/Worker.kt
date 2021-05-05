@@ -6,7 +6,6 @@
 package com.darkraha.services.core.worker
 
 import com.darkraha.services.core.deferred.Deferred
-import com.darkraha.services.core.job.Task
 import com.darkraha.services.core.utils.GlobalLock
 import com.darkraha.services.core.worker.executors.TPoolWorkerExecutor
 import com.darkraha.services.core.worker.executors.WorkerExecutor
@@ -29,54 +28,36 @@ class Worker(var exe: WorkerExecutor<*>) : WorkerA() {
     }
 
     private fun <PARAMS, RESULT> workflow(deferred: Deferred<PARAMS, RESULT>) {
+
         deferred.apply {
-            if (workerHelper.pending()) {
-                workerHelper.dispatchCallbacks()
+
+            if (setPending()) {
+
+                doDispatchCallbacks()
                 GlobalLock.lock(job.tasks.syncObject)
-                performTasks(this, job.tasks.preProcessors)
-                if (workerHelper.isPending()) {
+                performTasks(job.tasks.preProcessors)
+
+                if (isPending()) {
                     try {
-                        job.tasks.main?.onTask(job.params, workerHelper, job)
+                        job.exeCode?.also {
+                            job.result.tmpResult = it.invoke(job.params)
+                        }
+                        job.tasks.main?.onTask(job.params, this, job)
                     } catch (e: Exception) {
-                        workerHelper.error(e)
+                        setError(e)
                         e.printStackTrace()
                     }
                 }
-                performTasks(this, job.tasks.postProcessors)
+                performTasks(job.tasks.postProcessors)
                 GlobalLock.unlock(job.tasks.syncObject)
             }
-            if (workerHelper.isPending()) {
-                workerHelper.success()
+            if (isPending()) {
+                setSuccess()
             }
 
-            workerHelper.dispatchCallbacks()
-            workerHelper.notifyFinished()
-        }
-    }
-
-
-    override fun <PARAMS, RESULT> newHelper(deferred: Deferred<PARAMS, RESULT>): WorkerHelperA<PARAMS, RESULT> {
-        return WorkerHelper(deferred)
-    }
-
-
-    private fun <PARAMS, RESULT> performTasks(
-        deferred: Deferred<PARAMS, RESULT>,
-        tasks: List<Task<PARAMS>>?
-    ) {
-        deferred.apply {
-            if (workerHelper.isPending()) {
-                tasks?.forEach {
-                    if (workerHelper.isPending()) {
-                        try {
-                            it.onTask(job.params, workerHelper, job)
-                        } catch (e: Exception) {
-                            workerHelper.error(e)
-                            e.printStackTrace()
-                        }
-                    } else return
-                }
-            }
+            doDispatchCallbacks()
+            notifyFinished()
+            chainNext?.startNext()
         }
     }
 }

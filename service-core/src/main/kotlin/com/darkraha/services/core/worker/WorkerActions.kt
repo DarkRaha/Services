@@ -21,29 +21,29 @@ interface WorkerActions<RESULT> : JobNotifyProgress {
     /**
      * Set job to pending state, job started in background.
      */
-    fun pending(): Boolean
+    fun setPending(): Boolean
 
     /**
      * Set job to the success state, override result data.
      */
-    fun successWithData(value: RESULT?, file: File? = null, url: String? = null, istream: InputStream? = null)
+    fun setSuccessWithData(value: RESULT?, file: File? = null, url: String? = null, istream: InputStream? = null)
 
     /**
      * Set job to the success state, save current result data.
      */
-    fun success()
+    fun setSuccess()
 
 
     /**
      * Set job to the error state.
      */
-    fun error(exception: Exception? = null, reason: String = exception?.message ?: Deferred.ERR_REASON_DFAULT)
+    fun setError(exception: Exception? = null, reason: String = exception?.message ?: Deferred.ERR_REASON_DFAULT)
 
     /**
      * Reject job for some non-error reason.
      */
-    fun reject(reason: String = Deferred.CANCEL_REASON_SERVICE)
+    fun setReject(reason: String = Deferred.CANCEL_REASON_SERVICE)
 
-    fun dispatchCallbacks()
+    fun doDispatchCallbacks()
 
 }

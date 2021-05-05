@@ -8,7 +8,7 @@ import java.io.InputStream
  *
  * @author Rahul Verma
  */
-class JobResult<RESULT>(val clsTarget: Class<RESULT>) {
+class JobResult<RESULT>(val clsTarget: Class<RESULT>?) {
     /**
      * Main result of job
      */

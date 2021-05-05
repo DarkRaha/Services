@@ -51,7 +51,7 @@ class HttpClientOkTask(
                     } catch (e: Exception) {
                         result.file?.delete()
                         e.printStackTrace()
-                        error(e)
+                        setError(e)
                     }
                     Unit::class.java -> result.tmpResult = Unit
                     else -> {

@@ -19,7 +19,7 @@ import java.net.URL
 /**
  * @author Rahul Verma
  */
-class DeferredHttpRequestBuilder<RESULT>(val forDeferred: Deferred<Request,RESULT>) : HttpRequestBuilder<RESULT> {
+class DeferredHttpRequestBuilder<RESULT>(val forDeferred: Deferred<Request, RESULT>) : HttpRequestBuilder<RESULT> {
     private val builder = Request.Builder()
     private var mMethod: String? = null
     private var mStrBody: String? = null
@@ -109,9 +109,9 @@ class DeferredHttpRequestBuilder<RESULT>(val forDeferred: Deferred<Request,RESUL
         addHeader("Cookie", "${name}=${value}")
     }
 
-    override fun build(): DeferredServiceBuilder<Request,RESULT> {
+    override fun build(): DeferredServiceBuilder<Request, RESULT> {
         forDeferred.job.params = buildRequest()
-        mProgressRequestBody?.jobNotifyProgress = forDeferred.workerHelper
+        mProgressRequestBody?.jobNotifyProgress = forDeferred
         return forDeferred
     }
 

@@ -2,6 +2,7 @@ package com.darkraha.services.core.deferred
 
 import com.darkraha.services.core.job.JobCallbacks
 import com.darkraha.services.core.job.JobResponse
+import java.util.function.BiFunction
 import java.util.function.Consumer
 
 /**
@@ -75,6 +76,13 @@ interface UserDeferred<RESULT> {
         objWeak: Any? = null,
         cb: Consumer<JobResponse<RESULT>>
     ): UserDeferred<RESULT> = onBeforeStart(objWeak, true, cb)
+
+    //------------------------------------------------------
+    // chains
+    fun <NEXTPARAM, NEXTRESULT> append(
+        next: Deferred<NEXTPARAM, NEXTRESULT>
+    ): ChainBlock.ChainNextBuilder<RESULT, NEXTPARAM, NEXTRESULT>
+
 }
 
 

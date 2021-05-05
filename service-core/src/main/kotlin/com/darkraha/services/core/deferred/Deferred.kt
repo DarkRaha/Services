@@ -1,24 +1,28 @@
 package com.darkraha.services.core.deferred
 
 import com.darkraha.services.core.job.*
-import com.darkraha.services.core.job.JobCallback
 import com.darkraha.services.core.worker.WorkerA
-import com.darkraha.services.core.worker.WorkerHelperA
+import com.darkraha.services.core.worker.WorkerActions
 import java.io.File
-import java.util.*
+import java.io.InputStream
+import java.util.concurrent.locks.ReentrantLock
+import java.util.function.BiFunction
 import java.util.function.Consumer
-import kotlin.collections.HashMap
+import kotlin.concurrent.withLock
 
 /**
  * Default implementation of deferred object.
  *
  * @author Rahul Verma
  */
-class Deferred<PARAMS, RESULT>(clsResult: Class<RESULT>) :
-    DeferredServiceBuilder<PARAMS, RESULT> {
+open class Deferred<PARAMS, RESULT>(clsResult: Class<RESULT>? = null) :
+    DeferredServiceBuilder<PARAMS, RESULT>, WorkerActions<RESULT> {
     val job: Job<PARAMS, RESULT> = Job(clsResult)
     lateinit var worker: WorkerA
-    lateinit var workerHelper: WorkerHelperA<PARAMS, RESULT>
+
+    val jobLock = ReentrantLock()
+    val condFinished = jobLock.newCondition()
+    var chainNext: ChainBlock<RESULT, *, *>? = null
 
 
     override fun id(v: Long): DeferredServiceBuilder<PARAMS, RESULT> = apply { job.info.id = v }
@@ -44,12 +48,16 @@ class Deferred<PARAMS, RESULT>(clsResult: Class<RESULT>) :
 
     override fun onBeforeStart(objWeak: Any?, onMainThread: Boolean, cb: Consumer<JobResponse<RESULT>>):
             DeferredServiceBuilder<PARAMS, RESULT> = this.apply {
-        workerHelper.addCallback(JobState.PENDING, objWeak, onMainThread, cb)
+        jobLock.withLock {
+            job.doAddCallback(JobState.PENDING, objWeak, onMainThread, cb)
+        }
     }
 
     override fun onCancel(objWeak: Any?, onMainThread: Boolean, cb: Consumer<JobResponse<RESULT>>)
             : DeferredServiceBuilder<PARAMS, RESULT> = this.apply {
-        workerHelper.addCallback(JobState.CANCELED, objWeak, onMainThread, cb)
+        jobLock.withLock {
+            job.doAddCallback(JobState.CANCELED, objWeak, onMainThread, cb)
+        }
     }
 
     override fun onSuccess(
@@ -58,7 +66,9 @@ class Deferred<PARAMS, RESULT>(clsResult: Class<RESULT>) :
         cb: Consumer<JobResponse<RESULT>>
     ): DeferredServiceBuilder<PARAMS, RESULT> =
         this.apply {
-            workerHelper.addCallback(JobState.SUCCESS, objWeak, onMainThread, cb)
+            jobLock.withLock {
+                job.doAddCallback(JobState.SUCCESS, objWeak, onMainThread, cb)
+            }
         }
 
     override fun onError(
@@ -67,7 +77,9 @@ class Deferred<PARAMS, RESULT>(clsResult: Class<RESULT>) :
         cb: Consumer<JobResponse<RESULT>>
     ): DeferredServiceBuilder<PARAMS, RESULT> =
         this.apply {
-            workerHelper.addCallback(JobState.ERROR, objWeak, onMainThread, cb)
+            jobLock.withLock {
+                job.doAddCallback(JobState.ERROR, objWeak, onMainThread, cb)
+            }
         }
 
     override fun onFinish(
@@ -76,7 +88,9 @@ class Deferred<PARAMS, RESULT>(clsResult: Class<RESULT>) :
         cb: Consumer<JobResponse<RESULT>>
     ): DeferredServiceBuilder<PARAMS, RESULT> =
         this.apply {
-            workerHelper.addCallback(JobState.FINISHED, objWeak, onMainThread, cb)
+            jobLock.withLock {
+                job.doAddCallback(JobState.FINISHED, objWeak, onMainThread, cb)
+            }
         }
 
     override fun onProgress(
@@ -85,15 +99,30 @@ class Deferred<PARAMS, RESULT>(clsResult: Class<RESULT>) :
         cb: Consumer<JobResponse<RESULT>>
     ): DeferredServiceBuilder<PARAMS, RESULT> =
         this.apply {
-            workerHelper.addCallback(JobState.PROGRESS, objWeak, onMainThread, cb)
+            jobLock.withLock {
+                job.doAddCallback(JobState.PROGRESS, objWeak, onMainThread, cb)
+            }
         }
 
-    override fun removeCallbacks(objWeak: Any?) {
-        workerHelper.removeCallbacks(objWeak)
+    override fun <NEXTPARAM, NEXTRESULT> append(
+        next: Deferred<NEXTPARAM, NEXTRESULT>,
+    ): ChainBlock.ChainNextBuilder<RESULT, NEXTPARAM, NEXTRESULT> {
+        return ChainBlock.ChainNextBuilder(this, next)
     }
 
-    override fun subscribe(cb: JobCallbacks<RESULT>): DeferredServiceBuilder<PARAMS, RESULT> = this.apply {
-        workerHelper.addSubscribe(cb)
+    override fun removeCallbacks(objWeak: Any?) {
+        objWeak?.also { weak ->
+            jobLock.withLock {
+                job.doRemoveCallbacks(weak)
+            }
+        }
+    }
+
+    override fun subscribe(cb: JobCallbacks<RESULT>)
+            : DeferredServiceBuilder<PARAMS, RESULT> = this.apply {
+        jobLock.withLock {
+            job.doAddCallbacks(cb)
+        }
     }
 
     override fun sync(): UserDeferred<RESULT> = apply {
@@ -104,8 +133,100 @@ class Deferred<PARAMS, RESULT>(clsResult: Class<RESULT>) :
         worker.async(this)
     }
 
-    override fun await(): JobResponse<RESULT> = workerHelper.await()
+    override fun await(): JobResponse<RESULT> {
+        jobLock.withLock {
+            if (!job.state.get().isFinished()) {
+                condFinished.await()
+            }
+        }
+        return job
+    }
+
     override fun getResponse(): JobResponse<RESULT> = job
+
+
+    //===================================================================
+
+    /**
+     * Dispatch callbacks for current state (thread non-safe)
+     */
+    fun dispatchCallbacks() {
+        val state = job.state.get()
+        job.doDispatchCallbacks(state)
+
+        if (state.isFinished()) {
+            job.doDispatchCallbacks(JobState.FINISHED)
+        }
+    }
+
+    /**
+     * Perform specified tasks if state is PENDING.
+     */
+    fun performTasks(
+        tasks: List<Task<PARAMS>>?
+    ) {
+        tasks?.takeIf { isPending() }?.forEach {
+            if (isPending()) {
+                try {
+                    it.onTask(job.params, this, job)
+                } catch (e: Exception) {
+                    setError(e)
+                    e.printStackTrace()
+                }
+            } else return
+        }
+    }
+
+    open fun notifyFinished() {
+        jobLock.withLock {
+            condFinished.signalAll()
+        }
+    }
+
+    fun isPending() = job.state.get() == JobState.PENDING
+
+    //===================================================================
+    override val result: JobResult<RESULT>
+        get() = job.result
+
+    override fun doDispatchCallbacks() {
+        jobLock.withLock {
+            dispatchCallbacks()
+        }
+    }
+
+    override fun setError(exception: Exception?, reason: String) {
+        jobLock.withLock {
+            job.setError(exception, reason)
+        }
+    }
+
+    override fun setSuccess() {
+        jobLock.withLock {
+            job.setSuccess()
+        }
+    }
+
+    override fun setSuccessWithData(value: RESULT?, file: File?, url: String?, istream: InputStream?) {
+        jobLock.withLock {
+            job.setSuccess(value, file, url, istream)
+        }
+    }
+
+    override fun setPending(): Boolean = jobLock.withLock { job.setPending() }
+
+    override fun setReject(reason: String) {
+        jobLock.withLock { job.setRejected(reason) }
+    }
+
+    override fun notifyProgress(dataProgress: ProgressData) {
+        jobLock.withLock {
+            job.also {
+                it.progress = dataProgress
+                it.doDispatchCallbacks(JobState.PROGRESS)
+            }
+        }
+    }
 
     companion object {
         @JvmStatic
