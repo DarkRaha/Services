@@ -48,6 +48,7 @@ group = "com.github.darkraha"
 
 dependencies {
     api(project(":service-core"))
+    api(project(":service-diskcache"))
     api(project(":service-http"))
     api(project(":webcrawler"))
 }
