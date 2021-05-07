@@ -1,10 +1,12 @@
 package com.darkraha.services.core.utils
 
+import com.darkraha.services.core.extensions.lastPathSegment
 import java.io.*
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.Comparator
 import java.io.IOException
+import java.net.URL
 
 
 object FileUtils {
@@ -16,6 +18,11 @@ object FileUtils {
     @JvmStatic
     var bufferSize = 1024
 
+    val mimetypeToFileExtension = mutableMapOf(
+        Pair("text/plain", "txt"),
+        Pair("text/html", "html"),
+        Pair("application/json", "json")
+    )
 
     /**
      * A deep traversal from given directory to the deep, i.e. dir param will be first item.
@@ -77,7 +84,7 @@ object FileUtils {
      * Delete content of directory, but not directory itself.
      */
     @JvmStatic
-     fun clearDir(dir: File, onFile: ((File) -> Unit)?=null) {
+    fun clearDir(dir: File, onFile: ((File) -> Unit)? = null) {
         backTraverseDir(dir) {
             if (dir != it) {
                 onFile?.invoke(it)
@@ -185,5 +192,18 @@ object FileUtils {
         }
     }
 
+    @JvmStatic
+    fun genFile(urlString: String, mime: String?, parent: File?): File {
+        val url = URL(urlString)
+
+        val path = url.path
+        val ind = path.lastIndexOf("/")
+        var filename = if (ind > 0) path.substring(ind + 1) else path
+        if (!filename.contains('.')) {
+            filename = filename + "." + (mimetypeToFileExtension[mime] ?: "bin")
+        }
+
+        return if (parent != null) File(parent, filename) else File(filename)
+    }
 
 }

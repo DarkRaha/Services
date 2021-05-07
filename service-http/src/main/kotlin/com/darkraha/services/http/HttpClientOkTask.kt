@@ -2,6 +2,7 @@ package com.darkraha.services.http
 
 import com.darkraha.services.core.job.JobResponse
 import com.darkraha.services.core.job.Task
+import com.darkraha.services.core.utils.FileUtils
 
 import com.darkraha.services.core.utils.json.JsonConverterA
 import com.darkraha.services.core.worker.WorkerActions
@@ -38,7 +39,21 @@ class HttpClientOkTask(
                     String::class.java -> result.tmpResult = httpResponse.body?.string()
                     ByteArray::class.java -> result.tmpResult = httpResponse.body?.bytes()
                     File::class.java -> try {
-                        result.file?.apply {
+                        val file = when {
+                            result.file?.isFile ?: false -> result.file!!
+                            result.file?.isDirectory ?: false -> FileUtils.genFile(
+                                params.url.toString(),
+                                result.mimetype,
+                                result.file
+                            )
+                            else -> {
+                                FileUtils.genFile(
+                                    params.url.toString(), result.mimetype, null
+                                )
+                            }
+                        }
+
+                        file.apply {
                             result.tmpResult = this
                             delete()
                             parentFile?.mkdirs()

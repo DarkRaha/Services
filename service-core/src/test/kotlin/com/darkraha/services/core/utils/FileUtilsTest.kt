@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
+import java.net.URL
 import java.util.concurrent.TimeUnit
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -85,12 +86,12 @@ class FileUtilsTest {
     @Test
     fun copyIntoDir(@TempDir tempDir: File) {
 
-        val srcDir = File(tempDir,"tmp1")
-        val dstDir = File(tempDir,"tmp2")
+        val srcDir = File(tempDir, "tmp1")
+        val dstDir = File(tempDir, "tmp2")
 
         defaultFileTree(srcDir)
 
-        assertTrue(dstDir.listFiles()==null)
+        assertTrue(dstDir.listFiles() == null)
         FileUtils.copyIntoDir(srcDir, dstDir)
 
         assertTrue(dstDir.listFiles()!!.size == 1)
@@ -139,5 +140,14 @@ class FileUtilsTest {
     }
 
 
+    @Test
+    fun genFile() {
+        val str = "https://socode4.com/articыыles/htm/robot.txt#we?a=345"
+
+        URL(str).apply {
+            println(path)
+        }
+        assertTrue(true)
+    }
 
 }

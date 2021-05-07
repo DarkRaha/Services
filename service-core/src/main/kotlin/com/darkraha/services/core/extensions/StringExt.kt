@@ -11,3 +11,9 @@ fun String.encodeMd5(): String {
     digest.update(this.toByteArray())
     return BigInteger(digest.digest()).abs().toString(36)
 }
+
+
+fun String.lastPathSegment(): String {
+    val ind = lastIndexOf("/")
+    return if (ind > 0) substring(ind + 1) else this
+}
