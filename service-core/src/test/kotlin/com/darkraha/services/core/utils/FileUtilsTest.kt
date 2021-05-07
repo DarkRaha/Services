@@ -141,13 +141,14 @@ class FileUtilsTest {
 
 
     @Test
-    fun genFile() {
+    fun genFile(@TempDir tempDir: File) {
         val str = "https://socode4.com/articыыles/htm/robot.txt#we?a=345"
+        val str1 = "https://socode4.com/articыыles/htm/robot#we?a=345"
 
-        URL(str).apply {
-            println(path)
-        }
-        assertTrue(true)
+        assertTrue(FileUtils.genFile(str, null, null) == File("robot.txt"))
+        assertTrue(FileUtils.genFile(str1, "text/plain", null) == File("robot.txt"))
+        assertTrue(FileUtils.genFile(str1, "text/plain", tempDir) == File(tempDir, "robot.txt"))
+        assertTrue(FileUtils.genFile(str1, null, tempDir) == File(tempDir, "robot.bin"))
     }
 
 }
