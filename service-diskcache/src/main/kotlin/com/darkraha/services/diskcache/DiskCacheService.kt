@@ -35,31 +35,40 @@ open class DiskCacheService(val root: File = File("diskcache")) :
     }
 
 
-    override fun addFile(key: String, file: File, isPersistent: Boolean): UserDeferred<Unit> {
+    override fun addFile(key: String, file: File, isPersistent: Boolean, grp: String?): UserDeferred<Unit> {
         val params = DiskCacheParams().also {
             it.key = key
             it.source = file
             it.destination = if (isPersistent) storagePersistent else storage
+            grp?.apply {
+                it.destination = File(it.destination, this)
+            }
         }
 
         return newTypedDeferred(params, Unit::class.java).cmd(CMD_ADD).idObject(key).async()
     }
 
-    override fun addFileOrUpdate(key: String, file: File, isPersistent: Boolean): UserDeferred<Unit> {
+    override fun addFileOrUpdate(key: String, file: File, isPersistent: Boolean, grp: String?): UserDeferred<Unit> {
         val params = DiskCacheParams().also {
             it.key = key
             it.source = file
             it.destination = if (isPersistent) storagePersistent else storage
+            grp?.apply {
+                it.destination = File(it.destination, this)
+            }
         }
 
         return newTypedDeferred(params, Unit::class.java).cmd(CMD_ADD_OR_UPDATE).idObject(key).async()
     }
 
-    override fun removeKey(key: String, isPersistent: Boolean): UserDeferred<Unit> {
+    override fun removeKey(key: String, isPersistent: Boolean, grp: String?): UserDeferred<Unit> {
         val params = DiskCacheParams().also {
             it.key = key
             it.source = if (isPersistent) storagePersistent else storage
             it.destination = it.source!!
+            grp?.apply {
+                it.destination = File(it.destination, this)
+            }
         }
         return newTypedDeferred(params, Unit::class.java).cmd(CMD_REMOVE_KEY).idObject(key).async()
     }
@@ -72,19 +81,19 @@ open class DiskCacheService(val root: File = File("diskcache")) :
         return newTypedDeferred(params, Unit::class.java).cmd(CMD_CLEAN_OLD).async()
     }
 
-    override fun getFile(key: String, modification: String?): File? {
+    override fun getFile(key: String, grp: String?): File? {
         cache.get(key)?.apply { return this }
 
 
         val encoded = key.encodeMd5()
-        var dir = if (modification == null) storage else File(storage, modification)
+        var dir = if (grp == null) storage else File(storage, grp)
 
         getFileWithName(encoded, dir)?.apply {
             cache[key] = this
             return this
         }
 
-        dir = if (modification == null) storagePersistent else File(storagePersistent, modification)
+        dir = if (grp == null) storagePersistent else File(storagePersistent, grp)
 
         getFileWithName(encoded, dir)?.apply {
             cache[key] = this
@@ -94,16 +103,16 @@ open class DiskCacheService(val root: File = File("diskcache")) :
         return null
     }
 
-    override fun getFileExt(key: String, fileExtension: String?, modification: String?): File? {
+    override fun getFileExt(key: String, fileExtension: String?, grp: String?): File? {
         val encoded = key.encodeMd5()
         val ext = fileExtension ?: NOEXTENSION
-        var dir = if (modification == null) storage else File(storage, modification)
+        var dir = if (grp == null) storage else File(storage, grp)
         File(dir, encoded + "." + ext).takeIf { it.exists() }?.apply {
             cache[key] = this
             return this
         }
 
-        dir = if (modification == null) storagePersistent else File(storagePersistent, modification)
+        dir = if (grp == null) storagePersistent else File(storagePersistent, grp)
 
         File(dir, encoded + "." + ext).takeIf { it.exists() }?.apply {
             cache[key] = this

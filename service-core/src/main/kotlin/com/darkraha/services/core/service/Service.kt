@@ -7,6 +7,11 @@ import com.darkraha.services.core.worker.WorkerA
 import java.text.SimpleDateFormat
 import java.util.concurrent.*
 
+/**
+ * Base class to perform job. Child classes provides methods to create Deferred object which will be associated with job.
+ * By default Worker class will be used to execute job in background. It uses thread pool.
+ *
+ */
 open class Service {
     protected var defaultWorker: WorkerA? = null
 

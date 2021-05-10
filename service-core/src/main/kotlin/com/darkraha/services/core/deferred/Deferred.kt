@@ -11,7 +11,11 @@ import java.util.function.Consumer
 import kotlin.concurrent.withLock
 
 /**
- * Default implementation of deferred object.
+ * Default implementation of deferred object, which will be associated with some job.
+ * You can assign callbacks  before or after starting execution, or after a finish execution.
+ * You can specify ui-callbacks which are automatically will be executed in main thread.
+ * You can specify "weak" callbacks, which will be executed if weak object is exist.
+ * You can assign "progress" callback.
  *
  * @author Rahul Verma
  */
