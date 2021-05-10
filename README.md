@@ -19,8 +19,8 @@ Then add the dependency
           # implementation ("com.github.darkraha.services:service-core:<version>")
           # implementation ("com.github.darkraha.services:service-http:<version>")
           # implementation ("com.github.darkraha.services:webcrawler:<version>")
-	      # implementation ("com.github.DarkRaha.Services:service-diskcache:<version>")
-	      # implementation ("com.github.DarkRaha.Services:service-file-endecode:<version>")
+	  # implementation ("com.github.darkraha.services:service-diskcache:<version>")
+	  # implementation ("com.github.darkraha.services:service-file-endecode:<version>")
 	}
 	}
 ```
