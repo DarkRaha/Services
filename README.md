@@ -19,9 +19,12 @@ Then add the dependency
           # implementation ("com.github.darkraha.services:service-core:<version>")
           # implementation ("com.github.darkraha.services:service-http:<version>")
           # implementation ("com.github.darkraha.services:webcrawler:<version>")
+	      # implementation ("com.github.DarkRaha.Services:service-diskcache:<version>")
+	      # implementation ("com.github.DarkRaha.Services:service-file-endecode:<version>")
+	}
 	}
 ```
-Current version 2.0.03
+Current version 2.1.01
 
 ## http client
 Service interface for http / https requests with methods
@@ -32,7 +35,7 @@ Service interface for http / https requests with methods
   * uploadFile() - upload file (not tested yet)
   * restApixxx() - allows to post object as JSON and receive result as object (Gson library is used)
 
-Built-in implementation wrap OkHttpClient.
+Built-in implementation wrap OkHttpClient and use Gson, so you need add dependency on them also.
 
 ```
 HttpServiceOk.newInstance().downloadFile("https://publicobject.com/helloworld.txt")
