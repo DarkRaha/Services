@@ -11,6 +11,7 @@ import java.io.File
 import okhttp3.mockwebserver.MockResponse
 
 import okhttp3.mockwebserver.RecordedRequest
+import org.junit.jupiter.api.io.TempDir
 
 
 internal class HttpServiceOkTest {
@@ -18,6 +19,7 @@ internal class HttpServiceOkTest {
 
     val VAL_HELLO = "Hello World!"
     val URL_STRING = "/hello_world"
+    val URL_STRING2 = "/hello_world2"
     val URL_API = "/api/action"
 
     lateinit var mockWebServer: MockWebServer
@@ -37,7 +39,14 @@ internal class HttpServiceOkTest {
             override fun dispatch(request: RecordedRequest): MockResponse {
 
                 when (request.path) {
-                    URL_STRING -> return MockResponse().setResponseCode(200).setBody(VAL_HELLO)
+                    URL_STRING -> return MockResponse()
+                        .setResponseCode(200)
+                        .addHeader("content-type: text/html; charset=utf-8")
+                        .setBody(VAL_HELLO)
+                    URL_STRING2 -> return MockResponse()
+                        .setResponseCode(200)
+                        .addHeader("content-type: text/plain; charset=utf-8")
+                        .setBody(VAL_HELLO)
                     URL_API -> return MockResponse().setResponseCode(200)
                         .setBody(jsonResponse)
                         .addHeader("Content-Type", "application/json; charset=utf-8")
@@ -72,12 +81,15 @@ internal class HttpServiceOkTest {
         httpClient.downloadFile(url)
             .onSuccess {
                 result = it.getResult()
-            }.await()
+            }.await().apply {
+                assertTrue(getState().isSuccess())
+            }
 
         result!!.apply {
             assertTrue(exists())
             assertTrue(length() > 0)
-            assertTrue("hello_world" == name)
+            println(name)
+            assertTrue("hello_world.html" == name)
             assertTrue(delete())
         }
     }
@@ -90,13 +102,31 @@ internal class HttpServiceOkTest {
         httpClient.downloadFile(url, result)
             .onSuccess {
 
-            }.await()
+            }.await().apply {
+                assertTrue(getState().isSuccess())
+            }
 
         result.apply {
             assertTrue(exists())
             assertTrue(length() == VAL_HELLO.length.toLong())
             assertTrue("hello.txt" == name)
             assertTrue(delete())
+        }
+    }
+
+    @Test
+    fun downloadFileToDir(@TempDir tempDir: File) {
+        val result = File(tempDir, "hello_world.html")
+        val url = mockWebServer.url(URL_STRING).toString()
+
+        httpClient.downloadFile(url, tempDir)
+            .await().apply {
+                assertTrue(getState().isSuccess())
+            }
+
+        result.apply {
+            assertTrue(exists())
+            assertTrue(length() == VAL_HELLO.length.toLong())
         }
     }
 

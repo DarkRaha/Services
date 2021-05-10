@@ -1,7 +1,7 @@
 tasks {
 
     jar {
-        val modules = setOf("service-core", "service-http", "webcrawler", "service-diskcache")
+        val modules = setOf("service-core", "service-http", "webcrawler", "service-diskcache", "service-file-endecode")
 
 //        rootProject.subprojects.filter { it.name!="all" }.forEach {
 //            dependsOn(":${it.name}:jar")

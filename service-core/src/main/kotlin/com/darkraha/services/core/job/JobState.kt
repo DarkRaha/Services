@@ -32,4 +32,6 @@ enum class JobState {
     }
 
     fun isFinished() = this > PROGRESS //!(this == PREPARE || this == PENDING || this == PROGRESS)
+    fun isSuccess() = this == SUCCESS
+    fun isError() = this == ERROR
 }

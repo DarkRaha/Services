@@ -40,12 +40,16 @@ class HttpClientOkTask(
                     ByteArray::class.java -> result.tmpResult = httpResponse.body?.bytes()
                     File::class.java -> try {
                         val file = when {
-                            result.file?.isFile ?: false -> result.file!!
-                            result.file?.isDirectory ?: false -> FileUtils.genFile(
-                                params.url.toString(),
-                                result.mimetype,
-                                result.file
-                            )
+                            result.file?.isDirectory ?: false -> {
+                                FileUtils.genFile(
+                                    params.url.toString(),
+                                    result.mimetype,
+                                    result.file
+                                )
+                            }
+                            result.file?.isFile ?: false
+                                    || 0 < result.file?.extension?.length ?: 0
+                            -> result.file!!
                             else -> {
                                 FileUtils.genFile(
                                     params.url.toString(), result.mimetype, null

@@ -31,11 +31,14 @@ open class Service {
         val w3cDateTimeFormat: SimpleDateFormat by lazy { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX") }
         val w3cDateFormat: SimpleDateFormat by lazy { SimpleDateFormat("yyyy-MM-dd") }
 
+        val sharedThreadWorker: WorkerA by lazy { Worker(newExecutorService(10)) }
+
         fun newExecutorService(maxCore: Int, q: BlockingQueue<Runnable> = LinkedBlockingQueue()): ExecutorService {
-            return ThreadPoolExecutor(
-                0, maxCore, 2L, TimeUnit.MINUTES,
-                q
-            )
+            return ThreadPoolExecutor(0, maxCore, 2L, TimeUnit.MINUTES, q)
+        }
+
+        fun newThreadWorker(cntThreads: Int = 5): Worker {
+            return Worker(newExecutorService(cntThreads))
         }
     }
 

@@ -195,14 +195,12 @@ object FileUtils {
     @JvmStatic
     fun genFile(urlString: String, mime: String?, parent: File?): File {
         val url = URL(urlString)
-
         val path = url.path
         val ind = path.lastIndexOf("/")
-        var filename = if (ind > 0) path.substring(ind + 1) else path
+        var filename = if (ind >= 0) path.substring(ind + 1) else path
         if (!filename.contains('.')) {
-            filename = filename + "." + (mimetypeToFileExtension[mime] ?: "bin")
+            filename = filename + "." + (mimetypeToFileExtension[mime?.substringBefore(';')] ?: "bin")
         }
-
         return if (parent != null) File(parent, filename) else File(filename)
     }
 
